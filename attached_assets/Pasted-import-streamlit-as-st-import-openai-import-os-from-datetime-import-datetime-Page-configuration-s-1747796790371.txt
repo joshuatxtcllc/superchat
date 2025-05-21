@@ -1,0 +1,269 @@
+import streamlit as st
+import openai
+import os
+from datetime import datetime
+
+# Page configuration
+st.set_page_config(
+    page_title="Multi-Model Chat Interface",
+    page_icon="💬",
+    layout="wide"
+)
+
+# Apply custom CSS
+st.markdown("""
+<style>
+    .main {
+        padding: 0rem;
+        max-width: 50rem;
+        margin: 0 auto;
+    }
+    .stTextInput > div > div > input {
+        padding: 0.5rem;
+    }
+    .chat-message {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    .chat-message.user {
+        background-color: #EBF3FA;
+    }
+    .chat-message.assistant {
+        background-color: #F5F5F5;
+    }
+    .chat-message .message-content {
+        margin-left: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-message .message-content .message-text {
+        margin-top: 0.5rem;
+    }
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .user-avatar {
+        background-color: #2D87D3;
+        color: white;
+    }
+    .assistant-avatar {
+        background-color: #9E9E9E;
+        color: white;
+    }
+    .stButton button {
+        width: 100%;
+        padding: 0.5rem;
+        background-color: #2D87D3;
+        color: white;
+        border: none;
+        border-radius: 0.3rem;
+    }
+    .timestamp {
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 0.2rem;
+    }
+    .model-info {
+        font-size: 0.8rem;
+        color: #666;
+        font-style: italic;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Set up OpenAI API key
+def setup_api():
+    if 'OPENAI_API_KEY' in os.environ:
+        return os.environ['OPENAI_API_KEY']
+    elif 'openai_api_key' in st.session_state:
+        return st.session_state.openai_api_key
+    else:
+        return None
+
+# Initialize session state variables
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+if 'current_model' not in st.session_state:
+    st.session_state.current_model = "gpt-4o"
+
+# Available models
+MODELS = {
+    "GPT-4o": "gpt-4o",
+    "GPT-4o mini": "gpt-4o-mini",
+    "GPT-3.5 Turbo": "gpt-3.5-turbo",
+    "Claude 3 Haiku": "claude-3-haiku-20240307",
+    "Claude 3 Sonnet": "claude-3-sonnet-20240229",
+    "Claude 3 Opus": "claude-3-opus-20240229"
+}
+
+# Function to get response from OpenAI or Anthropic based on model name
+def get_ai_response(messages, model):
+    try:
+        # Configure API key
+        api_key = setup_api()
+        if not api_key:
+            return "Please enter your API key in the sidebar to continue."
+        
+        client = openai.OpenAI(api_key=api_key)
+        
+        # OpenAI models
+        if model.startswith("gpt-"):
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=0.7,
+            )
+            return response.choices[0].message.content
+        
+        # Claude models
+        elif model.startswith("claude-"):
+            # For Claude models, you would need the Anthropic API
+            # This is a simplified implementation
+            # In a real app, you'd use the Anthropic client library
+            from anthropic import Anthropic
+            
+            # Convert OpenAI message format to Anthropic
+            anthropic_messages = []
+            for msg in messages:
+                role = "user" if msg["role"] == "user" else "assistant"
+                anthropic_messages.append({"role": role, "content": msg["content"]})
+            
+            anthropic_client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+            response = anthropic_client.messages.create(
+                model=model,
+                messages=anthropic_messages,
+                max_tokens=1000,
+            )
+            return response.content[0].text
+        
+        else:
+            return "Unsupported model selected."
+    
+    except Exception as e:
+        return f"Error: {str(e)}"
+
+# Sidebar for settings
+with st.sidebar:
+    st.title("Chat Settings")
+    
+    # Model selector
+    model_name = st.selectbox(
+        "Select AI Model",
+        list(MODELS.keys()),
+        index=list(MODELS.keys()).index(next((k for k, v in MODELS.items() if v == st.session_state.current_model), "GPT-4o"))
+    )
+    st.session_state.current_model = MODELS[model_name]
+    
+    # API key input
+    if 'openai_api_key' not in st.session_state:
+        st.session_state.openai_api_key = ""
+    
+    api_key = st.text_input("Enter OpenAI API Key", 
+                           value=st.session_state.openai_api_key, 
+                           type="password",
+                           help="You can find your API key in your OpenAI account settings.")
+    st.session_state.openai_api_key = api_key
+    
+    # For Claude models
+    if st.session_state.current_model.startswith("claude-"):
+        anthropic_key = st.text_input("Enter Anthropic API Key", 
+                                    value=os.environ.get("ANTHROPIC_API_KEY", ""),
+                                    type="password",
+                                    help="Required for Claude models")
+        if anthropic_key:
+            os.environ["ANTHROPIC_API_KEY"] = anthropic_key
+    
+    # Clear conversation button
+    if st.button("Clear Conversation"):
+        st.session_state.messages = []
+        st.rerun()
+    
+    st.divider()
+    st.markdown("### About")
+    st.markdown("""
+    This interface allows you to chat with different AI models.
+    Choose a model from the dropdown and start chatting!
+    """)
+
+# Main interface
+st.title("Multi-Model Chat Interface")
+st.markdown(f"Currently using: **{model_name}**")
+
+# Display chat messages
+for idx, message in enumerate(st.session_state.messages):
+    with st.container():
+        col1, col2 = st.columns([1, 12])
+        
+        with col1:
+            if message["role"] == "user":
+                st.markdown(f"""<div class="avatar user-avatar">👤</div>""", unsafe_allow_html=True)
+            else:
+                st.markdown(f"""<div class="avatar assistant-avatar">🤖</div>""", unsafe_allow_html=True)
+        
+        with col2:
+            role_display = "You" if message["role"] == "user" else "Assistant"
+            timestamp = message.get("timestamp", "")
+            model_used = message.get("model", "")
+            
+            st.markdown(f"""
+            <div class="message-header">
+                <strong>{role_display}</strong>
+                <div class="timestamp">{timestamp}</div>
+                {f'<div class="model-info">Model: {model_used}</div>' if model_used else ''}
+            </div>
+            <div class="message-text">{message["content"]}</div>
+            """, unsafe_allow_html=True)
+
+# Input area
+with st.container():
+    user_input = st.text_area("Your message", height=100, key="user_input")
+    col1, col2 = st.columns([5, 1])
+    
+    with col2:
+        send_button = st.button("Send")
+    
+    if send_button and user_input.strip():
+        # Add user message to conversation
+        timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+        st.session_state.messages.append({
+            "role": "user", 
+            "content": user_input,
+            "timestamp": timestamp
+        })
+        
+        # Prepare messages for API call
+        api_messages = [{"role": m["role"], "content": m["content"]} for m in st.session_state.messages]
+        
+        # Get AI response
+        with st.spinner("Thinking..."):
+            response = get_ai_response(api_messages, st.session_state.current_model)
+        
+        # Add assistant message to conversation
+        timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+        st.session_state.messages.append({
+            "role": "assistant", 
+            "content": response,
+            "timestamp": timestamp,
+            "model": model_name
+        })
+        
+        # Clear input and rerun to update the UI
+        st.session_state.user_input = ""
+        st.rerun()
+
+# Add a footer
+st.markdown("""
+<div style="text-align: center; margin-top: 2rem; padding: 1rem; color: #888;">
+    Multi-Model Chat Interface © 2023
+</div>
+""", unsafe_allow_html=True)
