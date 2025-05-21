@@ -238,6 +238,9 @@ with st.container():
     user_input = st.text_area("Your message", height=100, key="user_input")
     col1, col2 = st.columns([5, 1])
     
+    with col1:
+        st.caption("Type your message above and click 'Send' to get a response from the selected AI model.")
+    
     with col2:
         send_button = st.button("Send")
     
