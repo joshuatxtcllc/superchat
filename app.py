@@ -217,7 +217,7 @@ if len(st.session_state.messages) == 0:
                 </div>
                 """
                 st.markdown(starter_html, unsafe_allow_html=True)
-                if st.button(starter, key=f"starter_{starter_category}_{starter}", label_visibility="collapsed"):
+                if st.button(starter, key=f"starter_{starter_category}_{starter}"):
                     # Store the selected starter in session state
                     st.session_state.selected_starter = starter
                     st.rerun()
