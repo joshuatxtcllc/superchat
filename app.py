@@ -201,45 +201,54 @@ if len(st.session_state.messages) == 0:
             st.markdown(f"**{starter_category}**")
             for starter in starter_list:
                 if st.button(starter, key=f"starter_{starter_category}_{starter}"):
-                    timestamp = datetime.now().strftime("%I:%M %p, %B %d")
-                    # Add user message to conversation
-                    st.session_state.messages.append({
-                        "role": "user", 
-                        "content": starter,
-                        "timestamp": timestamp
-                    })
-                    
-                    # Save conversation history
-                    save_session_history(st.session_state.conversation_id, st.session_state.messages)
-                    
-                    # Process with MCP if enabled
-                    messages_for_api = mcp_handler.prepare_messages(st.session_state.messages)
-                    
-                    # Get AI response using current model
-                    with st.spinner("Thinking..."):
-                        response = model_handler.get_response(messages_for_api, st.session_state.current_model)
-                        
-                        # Add MCP context if available
-                        mcp_context = mcp_handler.extract_mcp_context(response)
-                        
-                        # Add assistant message to conversation
-                        timestamp = datetime.now().strftime("%I:%M %p, %B %d")
-                        current_model_name = next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), "AI")
-                        st.session_state.messages.append({
-                            "role": "assistant", 
-                            "content": response,
-                            "timestamp": timestamp,
-                            "model": current_model_name,
-                            "model_id": st.session_state.current_model,
-                            "mcp_context": mcp_context
-                        })
-                        
-                        # Save conversation history
-                        save_session_history(st.session_state.conversation_id, st.session_state.messages)
-                    
+                    # Store the selected starter in session state
+                    st.session_state.selected_starter = starter
                     st.rerun()
     
     st.divider()
+
+# Process selected starter if exists
+if 'selected_starter' in st.session_state and st.session_state.selected_starter:
+    starter = st.session_state.selected_starter
+    timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+    
+    # Add user message to conversation
+    st.session_state.messages.append({
+        "role": "user", 
+        "content": starter,
+        "timestamp": timestamp
+    })
+    
+    # Save conversation history
+    save_session_history(st.session_state.conversation_id, st.session_state.messages)
+    
+    # Process with MCP if enabled
+    messages_for_api = mcp_handler.prepare_messages(st.session_state.messages)
+    
+    # Get AI response using current model
+    with st.spinner("Thinking..."):
+        response = model_handler.get_response(messages_for_api, st.session_state.current_model)
+        
+        # Add MCP context if available
+        mcp_context = mcp_handler.extract_mcp_context(response)
+        
+        # Add assistant message to conversation
+        timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+        current_model_name = next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), "AI")
+        st.session_state.messages.append({
+            "role": "assistant", 
+            "content": response,
+            "timestamp": timestamp,
+            "model": current_model_name,
+            "model_id": st.session_state.current_model,
+            "mcp_context": mcp_context
+        })
+        
+        # Save conversation history
+        save_session_history(st.session_state.conversation_id, st.session_state.messages)
+    
+    # Clear the selected starter
+    st.session_state.selected_starter = None
 
 # Display chat messages with MCP information
 for idx, message in enumerate(st.session_state.messages):
