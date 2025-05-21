@@ -332,8 +332,8 @@ with st.container():
                 # Save conversation history
                 save_session_history(st.session_state.conversation_id, st.session_state.messages)
         
-        # Clear input and rerun to update the UI
-        st.session_state.user_input = ""
+        # Just rerun to update the UI
+        # The text area will be cleared automatically on rerun
         st.rerun()
 
 # Add a footer
