@@ -7,43 +7,49 @@ custom_css = """
 <style>
     .main {
         padding: 0 1rem;
-        max-width: 60rem;
+        max-width: 65rem;
         margin: 0 auto;
     }
     .chat-message {
         padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
+        border-radius: 1rem;
+        margin-bottom: 1.2rem;
         display: flex;
         flex-direction: row;
         align-items: flex-start;
         background-color: #f9f9f9;
-        border-left: 5px solid #e0e0e0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .chat-message:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
     .chat-message.user {
         background-color: #f0f7ff;
         border-left: 5px solid #2D87D3;
     }
     .chat-message.assistant {
-        background-color: #f9f9f9;
+        background-color: #fafafa;
         border-left: 5px solid #9E9E9E;
     }
     .avatar {
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 20px;
         margin-right: 1rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .user-avatar {
-        background-color: #2D87D3;
+        background: linear-gradient(135deg, #2D87D3, #1a5fa0);
         color: white;
     }
     .assistant-avatar {
-        background-color: #9E9E9E;
+        background: linear-gradient(135deg, #9E9E9E, #707070);
         color: white;
     }
     .message-content {
@@ -53,46 +59,138 @@ custom_css = """
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.7rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     .message-model {
-        font-size: 0.8rem;
-        color: #666;
+        font-size: 0.85rem;
+        color: #555;
         font-style: italic;
+        padding: 0.2rem 0.5rem;
+        background-color: rgba(0,0,0,0.03);
+        border-radius: 0.5rem;
     }
     .message-timestamp {
         font-size: 0.8rem;
         color: #888;
     }
     .message-text {
-        line-height: 1.5;
+        line-height: 1.6;
     }
+    
+    /* Button styling */
+    button, .stButton>button {
+        transition: all 0.2s ease !important;
+        border-radius: 0.5rem !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+    }
+    button:hover, .stButton>button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+    }
+    
+    /* Input field styling */
+    .stTextArea textarea, .stTextInput input {
+        border-radius: 0.5rem !important;
+        border: 1px solid #e0e0e0 !important;
+        padding: 0.75rem !important;
+        transition: all 0.2s ease !important;
+    }
+    .stTextArea textarea:focus, .stTextInput input:focus {
+        border-color: #2D87D3 !important;
+        box-shadow: 0 0 0 2px rgba(45,135,211,0.2) !important;
+    }
+    
+    /* Sidebar styling */
+    .sidebar .sidebar-content {
+        background-color: #f8f9fa !important;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background-color: #f8f9fa !important;
+        border-radius: 0.5rem !important;
+    }
+    
+    /* Conversation starters */
+    .conversation-starter {
+        padding: 0.8rem 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #e0e0e0;
+    }
+    .conversation-starter:hover {
+        background-color: #f0f7ff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        border-color: #2D87D3;
+    }
+    
     /* Additional styles for model cards */
     .model-card {
         border: 1px solid #e0e0e0;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
+        border-radius: 1rem;
+        padding: 1.2rem;
+        margin-bottom: 1.2rem;
         background-color: #ffffff;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .model-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
     }
     .model-card h3 {
         margin-top: 0;
         color: #2D87D3;
+        font-weight: 600;
+        font-size: 1.2rem;
     }
     .model-card-badges {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem;
-        margin: 0.5rem 0;
+        margin: 0.8rem 0;
     }
     .model-badge {
-        background-color: #f0f7ff;
+        background: linear-gradient(135deg, #f0f7ff, #e1effe);
         color: #2D87D3;
-        padding: 0.25rem 0.5rem;
+        padding: 0.3rem 0.7rem;
         border-radius: 1rem;
         font-size: 0.8rem;
+        font-weight: 500;
         display: inline-block;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    /* App header styling */
+    header {
+        margin-bottom: 2rem;
+    }
+    h1 {
+        background: linear-gradient(90deg, #2D87D3, #36a9e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700 !important;
+    }
+    
+    /* Loading spinner */
+    .stSpinner > div {
+        border-color: #2D87D3 transparent transparent !important;
+    }
+    
+    /* Footer styling */
+    .footer {
+        margin-top: 2.5rem;
+        padding: 1.5rem;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 1rem;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
     }
 </style>
 """

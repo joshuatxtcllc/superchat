@@ -161,7 +161,14 @@ with st.sidebar:
     """)
 
 # Main interface
-st.title("Multi-Model Chat Interface")
+st.markdown("""
+<header>
+    <h1>Multi-Model Chat Interface</h1>
+    <p style="font-size: 1.1rem; color: #666; margin-top: -0.5rem; margin-bottom: 1.5rem;">
+        Interact with multiple AI models in one unified experience with MCP support
+    </p>
+</header>
+""", unsafe_allow_html=True)
 
 # Model recommender section
 if 'show_recommender' in st.session_state and st.session_state.show_recommender:
@@ -189,18 +196,28 @@ if 'show_recommender' in st.session_state and st.session_state.show_recommender:
 
 # Conversation starters
 if len(st.session_state.messages) == 0:
-    st.markdown("### Conversation Starters")
+    st.markdown("### 💬 Conversation Starters")
     starters = get_conversation_starters()
     
     # Create 3 columns
     cols = st.columns(3)
     
-    # Display starters in columns
+    # Display starters in columns with improved styling
     for i, (starter_category, starter_list) in enumerate(starters.items()):
         with cols[i % 3]:
-            st.markdown(f"**{starter_category}**")
+            st.markdown(f"<h4 style='color: #2D87D3; margin-bottom: 12px;'>{starter_category}</h4>", unsafe_allow_html=True)
             for starter in starter_list:
-                if st.button(starter, key=f"starter_{starter_category}_{starter}"):
+                # Create a simplified hash for the starter to use in HTML id
+                starter_id = "".join([c if c.isalnum() else "_" for c in starter[:10]])
+                starter_html = f"""
+                <div class="conversation-starter" id="starter_{starter_category}_{starter_id}" onclick="
+                    document.querySelector('[data-testid*=\"stButton\"]').click()
+                ">
+                    {starter}
+                </div>
+                """
+                st.markdown(starter_html, unsafe_allow_html=True)
+                if st.button(starter, key=f"starter_{starter_category}_{starter}", label_visibility="collapsed"):
                     # Store the selected starter in session state
                     st.session_state.selected_starter = starter
                     st.rerun()
@@ -270,14 +287,16 @@ for idx, message in enumerate(st.session_state.messages):
 
 # Input area
 with st.container():
-    user_input = st.text_area("Your message", height=100, key="user_input")
+    st.markdown("<div style='background-color: #f8f9fa; padding: 1.2rem; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05);'>", unsafe_allow_html=True)
+    user_input = st.text_area("Your message", height=100, key="user_input", placeholder="Type your message here...")
     col1, col2 = st.columns([5, 1])
     
     with col1:
-        st.caption("Type your message above and click 'Send' to get a response from the selected AI model.")
+        st.caption("💡 Type your message above and click 'Send' to get a response from the selected AI model.")
     
     with col2:
-        send_button = st.button("Send")
+        send_button = st.button("✉️ Send")
+    st.markdown("</div>", unsafe_allow_html=True)
     
     if send_button and user_input.strip():
         # Add user message to conversation
@@ -345,9 +364,34 @@ with st.container():
         # The text area will be cleared automatically on rerun
         st.rerun()
 
-# Add a footer
+# Add a modern footer
 st.markdown("""
-<div style="text-align: center; margin-top: 2rem; padding: 1rem; color: #888;">
-    Multi-Model Chat Interface with MCP Support © 2025
+<div class="footer">
+    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: #2D87D3;">Multi-Model Chat Interface</div>
+    <div style="color: #666; margin-bottom: 1rem;">Powered by Model Context Protocol (MCP)</div>
+    <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; font-size: 0.9rem; color: #777;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <path d="M9 12l2 2 4-4"></path>
+            </svg>
+            Multiple AI Models
+        </div>
+        <div style="display: flex; align-items: center; font-size: 0.9rem; color: #777;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+            </svg>
+            Smart Recommendations
+        </div>
+        <div style="display: flex; align-items: center; font-size: 0.9rem; color: #777;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            MCP Support
+        </div>
+    </div>
+    <div style="color: #888; font-size: 0.85rem;">© 2025 · All Rights Reserved</div>
 </div>
 """, unsafe_allow_html=True)
