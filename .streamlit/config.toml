@@ -7,8 +7,8 @@ port = 5000
 [theme]
 primaryColor = "#2D87D3"
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F5F8FA"
-textColor = "#262730"
+secondaryBackgroundColor = "#F8FAFD"
+textColor = "#333333"
 font = "sans-serif"
 
 [browser]

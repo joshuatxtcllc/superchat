@@ -56,63 +56,77 @@ custom_css = """
         flex-grow: 1;
     }
     .message-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.7rem;
-        padding-bottom: 0.5rem;
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.7rem;
         border-bottom: 1px solid rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     .message-model {
         font-size: 0.85rem;
         color: #555;
+        font-weight: 500;
         font-style: italic;
-        padding: 0.2rem 0.5rem;
-        background-color: rgba(0,0,0,0.03);
-        border-radius: 0.5rem;
+        padding: 0.3rem 0.7rem;
+        background-color: rgba(45,135,211,0.08);
+        border-radius: 1rem;
+        border: 1px solid rgba(45,135,211,0.15);
     }
     .message-timestamp {
         font-size: 0.8rem;
         color: #888;
+        font-weight: 400;
     }
     .message-text {
-        line-height: 1.6;
+        line-height: 1.8;
+        font-size: 1.02rem;
+        color: #333;
     }
-    
+
     /* Button styling */
     button, .stButton>button {
-        transition: all 0.2s ease !important;
-        border-radius: 0.5rem !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        transition: all 0.3s ease !important;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.1) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.3px !important;
+        padding: 0.6rem 1.2rem !important;
+        border: none !important;
     }
     button:hover, .stButton>button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+        background-color: #2678bd !important;
     }
-    
+
     /* Input field styling */
     .stTextArea textarea, .stTextInput input {
-        border-radius: 0.5rem !important;
+        border-radius: 0.75rem !important;
         border: 1px solid #e0e0e0 !important;
-        padding: 0.75rem !important;
-        transition: all 0.2s ease !important;
+        padding: 1rem !important;
+        transition: all 0.3s ease !important;
+        font-size: 1.05rem !important;
+        background-color: rgba(255,255,255,0.8) !important;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.03) !important;
     }
     .stTextArea textarea:focus, .stTextInput input:focus {
         border-color: #2D87D3 !important;
-        box-shadow: 0 0 0 2px rgba(45,135,211,0.2) !important;
+        box-shadow: 0 0 0 3px rgba(45,135,211,0.2) !important;
+        background-color: #ffffff !important;
     }
-    
+
     /* Sidebar styling */
     .sidebar .sidebar-content {
         background-color: #f8f9fa !important;
     }
-    
+
     /* Expander styling */
     .streamlit-expanderHeader {
         background-color: #f8f9fa !important;
         border-radius: 0.5rem !important;
     }
-    
+
     /* Conversation starters */
     .conversation-starter {
         padding: 0.8rem 1rem;
@@ -129,7 +143,7 @@ custom_css = """
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         border-color: #2D87D3;
     }
-    
+
     /* Additional styles for model cards */
     .model-card {
         border: 1px solid #e0e0e0;
@@ -166,7 +180,7 @@ custom_css = """
         display: inline-block;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    
+
     /* App header styling */
     header {
         margin-bottom: 2rem;
@@ -177,12 +191,12 @@ custom_css = """
         -webkit-text-fill-color: transparent;
         font-weight: 700 !important;
     }
-    
+
     /* Loading spinner */
     .stSpinner > div {
         border-color: #2D87D3 transparent transparent !important;
     }
-    
+
     /* Footer styling */
     .footer {
         margin-top: 2.5rem;
@@ -207,9 +221,9 @@ def format_message(message):
     role_display = "You" if message["role"] == "user" else "Assistant"
     timestamp = message.get("timestamp", "")
     model = message.get("model", "")
-    
+
     model_display = f'<div class="message-model">Model: {model}</div>' if model else ''
-    
+
     return f"""
     <div class="chat-message {message['role']}">
         <div class="message-content">
@@ -234,7 +248,7 @@ def save_session_history(conversation_id, messages):
     """Saves the conversation history to a file"""
     history_dir = get_history_dir()
     history_path = os.path.join(history_dir, f"{conversation_id}.json")
-    
+
     try:
         with open(history_path, 'w') as f:
             json.dump(messages, f, indent=2)
@@ -247,12 +261,12 @@ def load_session_history(conversation_id):
     """Loads the conversation history from a file"""
     history_dir = get_history_dir()
     history_path = os.path.join(history_dir, f"{conversation_id}.json")
-    
+
     try:
         if os.path.exists(history_path):
             with open(history_path, 'r') as f:
                 return json.load(f)
     except Exception as e:
         print(f"Error loading conversation history: {str(e)}")
-    
+
     return []

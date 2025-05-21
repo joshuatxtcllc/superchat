@@ -164,9 +164,27 @@ with st.sidebar:
 st.markdown("""
 <header>
     <h1>Multi-Model Chat Interface</h1>
-    <p style="font-size: 1.1rem; color: #666; margin-top: -0.5rem; margin-bottom: 1.5rem;">
-        Interact with multiple AI models in one unified experience with MCP support
+    <p style="font-size: 1.2rem; color: #555; margin-top: -0.5rem; margin-bottom: 1.5rem; font-weight: 300; line-height: 1.6;">
+        Interact with multiple AI models in one unified experience with
+        <span style="background: linear-gradient(90deg, #2D87D3, #36a9e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600;">Model Context Protocol</span>
+        support
     </p>
+    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: #2D87D3; font-weight: 500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+            AI-powered recommender
+        </div>
+        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: #2D87D3; font-weight: 500;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
+                <path d="M9 12h6"></path>
+                <path d="M12 9v6"></path>
+            </svg>
+            Multi-model comparison
+        </div>
+    </div>
 </header>
 """, unsafe_allow_html=True)
 
@@ -287,15 +305,38 @@ for idx, message in enumerate(st.session_state.messages):
 
 # Input area
 with st.container():
-    st.markdown("<div style='background-color: #f8f9fa; padding: 1.2rem; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05);'>", unsafe_allow_html=True)
-    user_input = st.text_area("Your message", height=100, key="user_input", placeholder="Type your message here...")
+    st.markdown("""
+    <div style='background: linear-gradient(to bottom, #f8f9fa, #f0f7ff); 
+              padding: 1.5rem; 
+              border-radius: 1.2rem; 
+              box-shadow: 0 5px 20px rgba(0,0,0,0.08); 
+              border: 1px solid rgba(45,135,211,0.1);
+              position: relative;
+              overflow: hidden;'>
+        <div style='position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #2D87D3, transparent);'></div>
+    """, unsafe_allow_html=True)
+    
+    user_input = st.text_area("Your message", height=120, key="user_input", placeholder="Type your message here... Ask anything or select a conversation starter above!")
+    
     col1, col2 = st.columns([5, 1])
     
     with col1:
-        st.caption("💡 Type your message above and click 'Send' to get a response from the selected AI model.")
+        st.markdown("""
+        <div style='display: flex; align-items: center; margin-top: -0.5rem;'>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.5rem;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="8"></line>
+            </svg>
+            <span style="color: #555; font-size: 0.9rem; font-weight: 400;">
+                Type your message above and click 'Send' to get a response from the selected AI model
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        send_button = st.button("✉️ Send")
+        send_button = st.button("""<span style="font-weight: 600;">Send</span>""", use_container_width=True)
+    
     st.markdown("</div>", unsafe_allow_html=True)
     
     if send_button and user_input.strip():
@@ -367,31 +408,47 @@ with st.container():
 # Add a modern footer
 st.markdown("""
 <div class="footer">
-    <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; color: #2D87D3;">Multi-Model Chat Interface</div>
-    <div style="color: #666; margin-bottom: 1rem;">Powered by Model Context Protocol (MCP)</div>
-    <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1rem;">
-        <div style="display: flex; align-items: center; font-size: 0.9rem; color: #777;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1.2rem;">
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #2D87D3, #36a9e1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 0.8rem; box-shadow: 0 4px 10px rgba(45,135,211,0.3);">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                <path d="M9 11h6"></path>
+                <path d="M12 8v6"></path>
+            </svg>
+        </div>
+        <div style="font-weight: 700; font-size: 1.3rem; color: #2D87D3; letter-spacing: -0.5px;">Multi-Model Chat Interface</div>
+    </div>
+    
+    <div style="color: #666; margin-bottom: 1.5rem; font-size: 1.05rem;">
+        Powered by <span style="background: linear-gradient(90deg, #2D87D3, #36a9e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600;">Model Context Protocol (MCP)</span>
+    </div>
+    
+    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; font-size: 0.95rem; color: #555; background-color: rgba(255,255,255,0.6); padding: 0.7rem 1.2rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.7rem;">
                 <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 <path d="M9 12l2 2 4-4"></path>
             </svg>
-            Multiple AI Models
+            <span style="font-weight: 500;">Multiple AI Models</span>
         </div>
-        <div style="display: flex; align-items: center; font-size: 0.9rem; color: #777;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+        <div style="display: flex; align-items: center; font-size: 0.95rem; color: #555; background-color: rgba(255,255,255,0.6); padding: 0.7rem 1.2rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.7rem;">
                 <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
                 <path d="M2 17l10 5 10-5"></path>
                 <path d="M2 12l10 5 10-5"></path>
             </svg>
-            Smart Recommendations
+            <span style="font-weight: 500;">Smart Recommendations</span>
         </div>
-        <div style="display: flex; align-items: center; font-size: 0.9rem; color: #777;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+        <div style="display: flex; align-items: center; font-size: 0.95rem; color: #555; background-color: rgba(255,255,255,0.6); padding: 0.7rem 1.2rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.7rem;">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
-            MCP Support
+            <span style="font-weight: 500;">MCP Support</span>
         </div>
     </div>
-    <div style="color: #888; font-size: 0.85rem;">© 2025 · All Rights Reserved</div>
+    
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); color: #888; font-size: 0.9rem; font-weight: 400;">
+        © 2025 · All Rights Reserved · <span style="color: #2D87D3;">Terms of Service</span> · <span style="color: #2D87D3;">Privacy Policy</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
