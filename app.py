@@ -34,12 +34,14 @@ if 'current_model' not in st.session_state:
 if 'conversation_id' not in st.session_state:
     # Generate a unique conversation ID
     st.session_state.conversation_id = f"conv_{int(time.time())}"
-if 'api_keys' not in st.session_state:
-    st.session_state.api_keys = {}
 if 'comparison_mode' not in st.session_state:
     st.session_state.comparison_mode = False
 if 'comparison_models' not in st.session_state:
     st.session_state.comparison_models = []
+if 'message_count' not in st.session_state:
+    st.session_state.message_count = 0
+if 'last_message_time' not in st.session_state:
+    st.session_state.last_message_time = 0
 
 # Initialize handlers
 model_handler = ModelHandler()
@@ -56,28 +58,25 @@ if st.session_state.conversation_id:
 with st.sidebar:
     st.title("Chat Settings")
     
-    # API key management
-    with st.expander("API Keys", expanded=False):
-        openai_key = st.text_input(
-            "OpenAI API Key", 
-            value=st.session_state.api_keys.get('openai', os.environ.get('OPENAI_API_KEY', '')),
-            type="password",
-            help="You can find your API key in your OpenAI account settings."
-        )
-        st.session_state.api_keys['openai'] = openai_key
+    # API Status
+    with st.expander("API Status", expanded=False):
+        openai_configured = bool(os.environ.get('OPENAI_API_KEY'))
+        anthropic_configured = bool(os.environ.get('ANTHROPIC_API_KEY'))
         
-        anthropic_key = st.text_input(
-            "Anthropic API Key", 
-            value=st.session_state.api_keys.get('anthropic', os.environ.get('ANTHROPIC_API_KEY', '')),
-            type="password",
-            help="Required for Claude models"
-        )
-        st.session_state.api_keys['anthropic'] = anthropic_key
-        
-        if anthropic_key:
-            os.environ["ANTHROPIC_API_KEY"] = anthropic_key
-        if openai_key:
-            os.environ["OPENAI_API_KEY"] = openai_key
+        st.markdown("**OpenAI API:**")
+        if openai_configured:
+            st.success("✅ Configured")
+        else:
+            st.error("❌ Not configured - Add OPENAI_API_KEY to Secrets")
+            
+        st.markdown("**Anthropic API:**")
+        if anthropic_configured:
+            st.success("✅ Configured")
+        else:
+            st.error("❌ Not configured - Add ANTHROPIC_API_KEY to Secrets")
+            
+        if not openai_configured and not anthropic_configured:
+            st.warning("⚠️ No API keys configured. Please add them in the Secrets tool.")
     
     # Single model mode
     st.subheader("Model Selection")
@@ -340,6 +339,24 @@ with st.container():
     st.markdown("</div>", unsafe_allow_html=True)
     
     if send_button and user_input.strip():
+        # Input validation
+        if len(user_input) > 10000:
+            st.error("Message too long. Please limit to 10,000 characters.")
+            st.stop()
+            
+        # Basic rate limiting - max 20 messages per session
+        if st.session_state.message_count >= 20:
+            st.error("Message limit reached for this session. Please start a new conversation.")
+            st.stop()
+            
+        # Time-based rate limiting - minimum 2 seconds between messages
+        current_time = time.time()
+        if current_time - st.session_state.last_message_time < 2:
+            st.error("Please wait before sending another message.")
+            st.stop()
+            
+        st.session_state.message_count += 1
+        st.session_state.last_message_time = current_time
         # Add user message to conversation
         timestamp = datetime.now().strftime("%I:%M %p, %B %d")
         st.session_state.messages.append({
