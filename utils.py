@@ -127,21 +127,34 @@ custom_css = """
         border-radius: 0.5rem !important;
     }
 
-    /* Conversation starters */
-    .conversation-starter {
-        padding: 0.8rem 1rem;
-        background-color: #f8f9fa;
-        border-radius: 0.75rem;
-        margin-bottom: 0.75rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 1px solid #e0e0e0;
+    /* Conversation starters - updated for tabbed interface */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
     }
-    .conversation-starter:hover {
-        background-color: #f0f7ff;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        border-color: #2D87D3;
+    .stTabs [data-baseweb="tab"] {
+        background-color: rgba(45,135,211,0.1);
+        color: #2D87D3;
+        border-radius: 0.5rem 0.5rem 0 0;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #2D87D3;
+        color: white;
+    }
+    
+    /* Expander styling for conversation starters */
+    .streamlit-expanderHeader {
+        background: linear-gradient(135deg, rgba(45,135,211,0.1), rgba(54,169,225,0.1));
+        border: 1px solid rgba(45,135,211,0.2);
+        border-radius: 0.75rem;
+        font-weight: 600;
+        color: #2D87D3;
+    }
+    .streamlit-expanderHeader:hover {
+        background: linear-gradient(135deg, rgba(45,135,211,0.15), rgba(54,169,225,0.15));
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(45,135,211,0.2);
     }
 
     /* Additional styles for model cards */

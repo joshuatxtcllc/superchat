@@ -211,33 +211,25 @@ if 'show_recommender' in st.session_state and st.session_state.show_recommender:
 
     st.divider()
 
-# Conversation starters
+# Conversation starters - collapsible interface
 if len(st.session_state.messages) == 0:
-    st.markdown("### 💬 Conversation Starters")
-    starters = get_conversation_starters()
-    
-    # Create 3 columns
-    cols = st.columns(3)
-    
-    # Display starters in columns with improved styling
-    for i, (starter_category, starter_list) in enumerate(starters.items()):
-        with cols[i % 3]:
-            st.markdown(f"<h4 style='color: #2D87D3; margin-bottom: 12px;'>{starter_category}</h4>", unsafe_allow_html=True)
-            for starter in starter_list:
-                # Create a simplified hash for the starter to use in HTML id
-                starter_id = "".join([c if c.isalnum() else "_" for c in starter[:10]])
-                starter_html = f"""
-                <div class="conversation-starter" id="starter_{starter_category}_{starter_id}" onclick="
-                    document.querySelector('[data-testid*=\"stButton\"]').click()
-                ">
-                    {starter}
-                </div>
-                """
-                st.markdown(starter_html, unsafe_allow_html=True)
-                if st.button(starter, key=f"starter_{starter_category}_{starter}"):
-                    # Store the selected starter in session state
-                    st.session_state.selected_starter = starter
-                    st.rerun()
+    with st.expander("💬 Conversation Starters - Click to explore topics", expanded=False):
+        starters = get_conversation_starters()
+        
+        # Create tabs for different categories
+        tab_names = list(starters.keys())
+        tabs = st.tabs(tab_names)
+        
+        for i, (starter_category, starter_list) in enumerate(starters.items()):
+            with tabs[i]:
+                st.markdown(f"<h4 style='color: #2D87D3; margin-bottom: 16px;'>{starter_category}</h4>", unsafe_allow_html=True)
+                
+                # Display starters in a more compact format
+                for starter in starter_list:
+                    if st.button(starter, key=f"starter_{starter_category}_{starter}", use_container_width=True):
+                        # Store the selected starter in session state
+                        st.session_state.selected_starter = starter
+                        st.rerun()
     
     st.divider()
 
