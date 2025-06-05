@@ -236,6 +236,11 @@ def format_message(message):
     model = message.get("model", "")
 
     model_display = f'<div class="message-model">Model: {model}</div>' if model else ''
+    
+    # Handle image content
+    image_content = ""
+    if message.get("image_url"):
+        image_content = f'<img src="{message["image_url"]}" style="max-width: 100%; border-radius: 8px; margin-top: 10px;" alt="Generated image"/>'
 
     return f"""
     <div class="chat-message {message['role']}">
@@ -246,6 +251,7 @@ def format_message(message):
                 <div class="message-timestamp">{timestamp}</div>
             </div>
             <div class="message-text">{message['content']}</div>
+            {image_content}
         </div>
     </div>
     """

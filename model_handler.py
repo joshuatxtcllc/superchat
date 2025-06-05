@@ -2,6 +2,7 @@ import os
 import openai
 from anthropic import Anthropic
 import json
+import google.generativeai as genai
 
 class ModelHandler:
     """
@@ -20,6 +21,8 @@ class ModelHandler:
             "Claude 3 Haiku": "claude-3-haiku-20240307",
             "Claude 3 Sonnet": "claude-3-sonnet-20240229",
             "Claude 3 Opus": "claude-3-opus-20240229",
+            "Gemini Pro": "gemini-pro",
+            "Gemini Pro Vision": "gemini-pro-vision",
             "Llama 3 70B": "llama-3-70b-chat",
             "Mistral Large": "mistral-large-latest"
         }
@@ -163,6 +166,38 @@ class ModelHandler:
                     "Research support"
                 ],
                 "provider": "mistral"
+            },
+            "gemini-pro": {
+                "description": "Google's advanced multimodal model with strong reasoning capabilities.",
+                "strengths": [
+                    "Excellent at reasoning and analysis",
+                    "Strong coding capabilities",
+                    "Good at creative tasks",
+                    "Fast response times"
+                ],
+                "use_cases": [
+                    "Complex reasoning tasks",
+                    "Code generation and debugging",
+                    "Creative writing",
+                    "Data analysis"
+                ],
+                "provider": "google"
+            },
+            "gemini-pro-vision": {
+                "description": "Google's multimodal model with enhanced vision and image understanding.",
+                "strengths": [
+                    "Excellent image analysis",
+                    "Multimodal understanding",
+                    "Strong reasoning with visual content",
+                    "Good at describing images"
+                ],
+                "use_cases": [
+                    "Image analysis and description",
+                    "Visual content creation guidance",
+                    "Multimodal reasoning",
+                    "Visual problem-solving"
+                ],
+                "provider": "google"
             }
         }
     
@@ -212,6 +247,8 @@ class ModelHandler:
                 return self._get_openai_response(messages, model_id)
             elif provider == "anthropic":
                 return self._get_anthropic_response(messages, model_id)
+            elif provider == "google":
+                return self._get_gemini_response(messages, model_id)
             elif provider == "meta":
                 return self._get_meta_response(messages, model_id)
             elif provider == "mistral":
@@ -331,6 +368,36 @@ class ModelHandler:
         """Get a response from Meta AI models"""
         # For now, we'll use OpenAI API as a fallback with a note
         return self._get_openai_response(messages, "gpt-4o") + "\n\n[Note: Meta AI integration is simulated using OpenAI's API. In a production environment, you would use Meta's API directly.]"
+    
+    def _get_gemini_response(self, messages, model_id):
+        """Get a response from Google Gemini models"""
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            return "Gemini API key not found. Please add your GEMINI_API_KEY to Secrets."
+        
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel(model_id)
+            
+            # Convert messages to Gemini format
+            conversation_text = ""
+            for msg in messages:
+                if isinstance(msg, dict) and "role" in msg and "content" in msg:
+                    role = "User" if msg["role"] == "user" else "Assistant"
+                    conversation_text += f"{role}: {msg['content']}\n"
+            
+            # Get the last user message for the prompt
+            last_message = ""
+            for msg in reversed(messages):
+                if msg["role"] == "user":
+                    last_message = msg["content"]
+                    break
+            
+            response = model.generate_content(last_message)
+            return response.text
+        
+        except Exception as e:
+            return f"Gemini API Error: {str(e)}"
     
     def _get_mistral_response(self, messages, model_id):
         """Get a response from Mistral AI models"""

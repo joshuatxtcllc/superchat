@@ -8,6 +8,7 @@ from model_handler import ModelHandler
 from model_recommender import ModelRecommender
 from mcp_handler import MCPHandler
 from conversation_starters import get_conversation_starters
+from image_generator import ImageGenerator
 from utils import (
     get_avatar, 
     format_message, 
@@ -47,6 +48,7 @@ if 'last_message_time' not in st.session_state:
 model_handler = ModelHandler()
 model_recommender = ModelRecommender()
 mcp_handler = MCPHandler()
+image_generator = ImageGenerator()
 
 # Load saved messages if they exist
 if st.session_state.conversation_id:
@@ -62,6 +64,7 @@ with st.sidebar:
     with st.expander("API Status", expanded=False):
         openai_configured = bool(os.environ.get('OPENAI_API_KEY'))
         anthropic_configured = bool(os.environ.get('ANTHROPIC_API_KEY'))
+        gemini_configured = bool(os.environ.get('GEMINI_API_KEY'))
         
         st.markdown("**OpenAI API:**")
         if openai_configured:
@@ -75,7 +78,13 @@ with st.sidebar:
         else:
             st.error("❌ Not configured - Add ANTHROPIC_API_KEY to Secrets")
             
-        if not openai_configured and not anthropic_configured:
+        st.markdown("**Gemini API:**")
+        if gemini_configured:
+            st.success("✅ Configured")
+        else:
+            st.error("❌ Not configured - Add GEMINI_API_KEY to Secrets")
+            
+        if not openai_configured and not anthropic_configured and not gemini_configured:
             st.warning("⚠️ No API keys configured. Please add them in the Secrets tool.")
     
     # Single model mode
@@ -309,6 +318,79 @@ for idx, message in enumerate(st.session_state.messages):
             if message.get("mcp_context") and message["role"] == "assistant":
                 with st.expander("MCP Context Information", expanded=False):
                     st.json(message["mcp_context"])
+
+# Image generation section
+with st.expander("🎨 AI Image Generation", expanded=False):
+    st.subheader("Generate Images with AI")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        image_prompt = st.text_area(
+            "Image Description",
+            height=100,
+            placeholder="Describe the image you want to generate... Be as detailed as possible!",
+            help="Example: A futuristic cityscape at sunset with flying cars and neon lights"
+        )
+        
+        image_model = st.selectbox(
+            "Image Generation Model",
+            options=list(image_generator.available_models.keys()),
+            index=0
+        )
+        
+        if image_model == "DALL-E 3":
+            image_size = st.selectbox("Image Size", ["1024x1024", "1792x1024", "1024x1792"])
+            image_quality = st.selectbox("Quality", ["standard", "hd"])
+            image_style = st.selectbox("Style", ["vivid", "natural"])
+        else:
+            image_size = st.selectbox("Image Size", ["1024x1024", "512x512", "256x256"])
+            image_quality = "standard"
+            image_style = "vivid"
+    
+    with col2:
+        if st.button("🎨 Generate Image", type="primary", use_container_width=True):
+            if image_prompt.strip():
+                with st.spinner("Generating image... This may take a moment..."):
+                    result = image_generator.generate_image(
+                        prompt=image_prompt,
+                        model=image_generator.available_models[image_model],
+                        size=image_size,
+                        quality=image_quality,
+                        style=image_style
+                    )
+                    
+                    if result.get("success"):
+                        st.success("Image generated successfully!")
+                        st.image(result["image_url"], caption=f"Generated: {image_prompt[:100]}...")
+                        
+                        # Add generated image info to conversation
+                        timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": f"I've generated an image based on your prompt: '{image_prompt}'\n\n[Image URL: {result['image_url']}]",
+                            "timestamp": timestamp,
+                            "model": f"Image Generator ({image_model})",
+                            "model_id": result["model"],
+                            "image_url": result["image_url"],
+                            "image_prompt": image_prompt
+                        })
+                        
+                        # Save conversation history
+                        save_session_history(st.session_state.conversation_id, st.session_state.messages)
+                        
+                    else:
+                        st.error(f"Error generating image: {result.get('error', 'Unknown error')}")
+            else:
+                st.warning("Please enter a description for the image you want to generate.")
+        
+        st.markdown("""
+        **Tips for better images:**
+        - Be specific about style, colors, and mood
+        - Include details about lighting and composition
+        - Mention artistic styles if desired (e.g., "photorealistic", "watercolor", "digital art")
+        - Specify the subject and setting clearly
+        """)
 
 # File upload and screen sharing section
 with st.expander("📎 File Upload & Screen Sharing", expanded=False):
