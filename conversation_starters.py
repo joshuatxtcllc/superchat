@@ -44,5 +44,14 @@ def get_conversation_starters():
             "What types of tasks is Claude 3 Opus best at?",
             "Compare the coding abilities of different models.",
             "What are the latest improvements in AI language models?"
-        ]
+        ],
+        "Tech & Development": [
+            "Explain the concept of machine learning in simple terms",
+            "What are the key differences between frontend and backend development?",
+            "How do APIs work and why are they important?",
+            "What are some best practices for writing clean code?",
+            "Can you explain what cloud computing is?",
+            "Analyze my screen capture and help me improve my workflow",
+            "Review this screenshot of my code and suggest improvements"
+        ],
     }

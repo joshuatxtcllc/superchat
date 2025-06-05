@@ -193,6 +193,14 @@ class ModelHandler:
             # Add deep thinking prompt if enabled
             if deep_thinking:
                 thinking_prompt = "\n\nPlease show your reasoning process step by step before providing your final answer. Use a 'Thinking:' section to show your thought process transparently."
+                
+                # Add screen analysis guidance if screen capture detected
+                if uploaded_files:
+                    for file in uploaded_files:
+                        if 'screen-capture' in file.name.lower() or 'screenshot' in file.name.lower():
+                            thinking_prompt += "\n\nFor screen captures, please analyze: UI elements, applications visible, potential workflows, any text content, layout patterns, and provide actionable insights about what's shown."
+                            break
+                
                 if messages and messages[-1]["role"] == "user":
                     messages[-1]["content"] += thinking_prompt
             
@@ -229,8 +237,11 @@ class ModelHandler:
                     file_info.append(f"Text file '{file_name}': {content[:500]}{'...' if len(content) > 500 else ''}")
                 
                 elif file_type.startswith('image/'):
-                    # For images, just note the presence and type
-                    file_info.append(f"Image file '{file_name}' ({file_type}) uploaded")
+                    # For images, provide detailed context
+                    if 'screen-capture' in file_name.lower() or 'screenshot' in file_name.lower():
+                        file_info.append(f"Screen capture '{file_name}' ({file_type}) - This appears to be a screenshot that may contain UI elements, applications, or desktop content for analysis")
+                    else:
+                        file_info.append(f"Image file '{file_name}' ({file_type}) uploaded")
                 
                 elif file_name.endswith('.csv'):
                     # Read CSV files
