@@ -184,6 +184,12 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
+    st.markdown("### ⚙️ Configuration")
+    if st.button("Edit Branding & Settings", use_container_width=True):
+        st.session_state.show_config = True
+        st.rerun()
+
+    st.divider()
     st.markdown("### About MCP")
     st.markdown("""
     This interface implements the Model Context Protocol (MCP), which allows for 
@@ -241,6 +247,81 @@ if feature_badges:
         {''.join(feature_badges)}
     </div>
     """, unsafe_allow_html=True)
+
+# Configuration interface
+if 'show_config' in st.session_state and st.session_state.show_config:
+    st.markdown("## ⚙️ Branding & Configuration Settings")
+    
+    with st.form("config_form"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Company Information")
+            company_name = st.text_input("Company Name", value=wl_config.branding.company_name)
+            company_website = st.text_input("Company Website", value=wl_config.branding.company_website)
+            company_email = st.text_input("Support Email", value=wl_config.branding.company_support_email)
+            
+            st.subheader("App Branding")
+            app_title = st.text_input("App Title", value=wl_config.branding.app_title)
+            app_description = st.text_area("App Description", value=wl_config.branding.app_description)
+            app_icon = st.text_input("App Icon (emoji)", value=wl_config.branding.app_icon)
+            app_tagline = st.text_input("App Tagline", value=wl_config.branding.app_tagline)
+            
+        with col2:
+            st.subheader("Colors & Styling")
+            primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
+            secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
+            
+            st.subheader("Footer Settings")
+            show_powered_by = st.checkbox("Show 'Powered by MCP'", value=wl_config.branding.show_powered_by)
+            custom_footer = st.text_area("Custom Footer Text", value=wl_config.branding.custom_footer_text)
+            copyright_text = st.text_input("Copyright Text", value=wl_config.branding.copyright_text)
+            
+            st.subheader("Features")
+            enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
+            enable_file_upload = st.checkbox("Enable File Upload", value=wl_config.features.enable_file_upload)
+            enable_model_comparison = st.checkbox("Enable Model Comparison", value=wl_config.features.enable_model_comparison)
+        
+        col_save, col_cancel = st.columns(2)
+        
+        with col_save:
+            save_config = st.form_submit_button("💾 Save Configuration", type="primary", use_container_width=True)
+        
+        with col_cancel:
+            cancel_config = st.form_submit_button("❌ Cancel", use_container_width=True)
+        
+        if save_config:
+            # Update configuration
+            wl_config.branding.company_name = company_name
+            wl_config.branding.company_website = company_website
+            wl_config.branding.company_support_email = company_email
+            wl_config.branding.app_title = app_title
+            wl_config.branding.app_description = app_description
+            wl_config.branding.app_icon = app_icon
+            wl_config.branding.app_tagline = app_tagline
+            wl_config.branding.primary_color = primary_color
+            wl_config.branding.secondary_color = secondary_color
+            wl_config.branding.show_powered_by = show_powered_by
+            wl_config.branding.custom_footer_text = custom_footer
+            wl_config.branding.copyright_text = copyright_text
+            wl_config.features.enable_image_generation = enable_image_gen
+            wl_config.features.enable_file_upload = enable_file_upload
+            wl_config.features.enable_model_comparison = enable_model_comparison
+            
+            # Save to file
+            if wl_config.save_config():
+                st.success("✅ Configuration saved successfully! Refreshing page...")
+                st.session_state.show_config = False
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error("❌ Failed to save configuration")
+        
+        if cancel_config:
+            st.session_state.show_config = False
+            st.rerun()
+    
+    st.divider()
 
 # Model recommender section
 if 'show_recommender' in st.session_state and st.session_state.show_recommender:
