@@ -48,6 +48,24 @@
     "enable_authentication": false,
     "allowed_users": null,
     "daily_message_limit": 100,
-    "monthly_usage_limit": 1000
+    "monthly_usage_limit": 1000,
+    "server_host": "0.0.0.0",
+    "server_port": 5000,
+    "debug_mode": false
+  },
+  "connection": {
+    "enable_hub_integration": false,
+    "hub_dashboard_url": "",
+    "hub_api_key": "",
+    "hub_websocket_url": "",
+    "hub_events_endpoint": "/api/events/publish",
+    "hub_proxy_endpoint": "/api/proxy",
+    "hub_connection_test_endpoint": "/api/test-connection",
+    "connection_timeout": 30,
+    "retry_attempts": 3,
+    "enable_real_time_sync": true,
+    "app_id": "multi-model-chat",
+    "app_name": "Multi-Model Chat Interface",
+    "app_version": "1.0.0"
   }
 }

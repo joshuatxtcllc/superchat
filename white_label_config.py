@@ -74,6 +74,31 @@ class FeatureConfig:
     custom_conversation_starters: Dict[str, List[str]] = None
 
 @dataclass
+class ConnectionConfig:
+    """Connection configuration for Hub Dashboard integration"""
+    
+    # Hub Dashboard Connection
+    enable_hub_integration: bool = False
+    hub_dashboard_url: str = ""
+    hub_api_key: str = ""
+    hub_websocket_url: str = ""
+    
+    # API Endpoints
+    hub_events_endpoint: str = "/api/events/publish"
+    hub_proxy_endpoint: str = "/api/proxy"
+    hub_connection_test_endpoint: str = "/api/test-connection"
+    
+    # Connection Settings
+    connection_timeout: int = 30
+    retry_attempts: int = 3
+    enable_real_time_sync: bool = True
+    
+    # App Identification
+    app_id: str = "multi-model-chat"
+    app_name: str = "Multi-Model Chat Interface"
+    app_version: str = "1.0.0"
+
+@dataclass
 class DeploymentConfig:
     """Deployment-specific configuration"""
     
@@ -94,6 +119,11 @@ class DeploymentConfig:
     # Limits
     daily_message_limit: int = 100
     monthly_usage_limit: int = 1000
+    
+    # Server Configuration
+    server_host: str = "0.0.0.0"
+    server_port: int = 5000
+    debug_mode: bool = False
 
 class WhiteLabelConfig:
     """Main white-label configuration manager"""
@@ -103,6 +133,7 @@ class WhiteLabelConfig:
         self.branding = BrandingConfig()
         self.features = FeatureConfig()
         self.deployment = DeploymentConfig()
+        self.connection = ConnectionConfig()
         self.load_config()
     
     def load_config(self):
@@ -129,6 +160,12 @@ class WhiteLabelConfig:
                         for key, value in config_data['deployment'].items():
                             if hasattr(self.deployment, key):
                                 setattr(self.deployment, key, value)
+                    
+                    # Load connection config
+                    if 'connection' in config_data:
+                        for key, value in config_data['connection'].items():
+                            if hasattr(self.connection, key):
+                                setattr(self.connection, key, value)
         
         except Exception as e:
             print(f"Error loading white-label config: {e}")
@@ -139,7 +176,8 @@ class WhiteLabelConfig:
             config_data = {
                 'branding': asdict(self.branding),
                 'features': asdict(self.features),
-                'deployment': asdict(self.deployment)
+                'deployment': asdict(self.deployment),
+                'connection': asdict(self.connection)
             }
             
             with open(self.config_file, 'w') as f:
