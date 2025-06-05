@@ -345,7 +345,7 @@ if wl_config.features.enable_image_generation:
     with st.expander("🎨 AI Image Generation", expanded=False):
         st.subheader("Generate Images with AI")
 
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
     with col1:
         image_prompt = st.text_area(
@@ -417,114 +417,114 @@ if wl_config.features.enable_image_generation:
 # File upload and screen sharing section (if enabled)
 if wl_config.features.enable_file_upload or wl_config.features.enable_screen_sharing:
     with st.expander("📎 File Upload & Screen Sharing", expanded=False):
-    col1, col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
-    with col1:
-        st.subheader("📁 File Upload")
-        uploaded_files = st.file_uploader(
-            "Choose files to upload",
-            accept_multiple_files=True,
-            type=['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pdf', 'txt', 'doc', 'docx', 'csv', 'json'],
-            help="Upload images, documents, or text files to include in your conversation"
-        )
+        with col1:
+            st.subheader("📁 File Upload")
+            uploaded_files = st.file_uploader(
+                "Choose files to upload",
+                accept_multiple_files=True,
+                type=['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pdf', 'txt', 'doc', 'docx', 'csv', 'json'],
+                help="Upload images, documents, or text files to include in your conversation"
+            )
 
-        if uploaded_files:
-            st.write(f"📁 {len(uploaded_files)} file(s) uploaded:")
-            for file in uploaded_files:
-                st.write(f"- {file.name} ({file.type})")
+            if uploaded_files:
+                st.write(f"📁 {len(uploaded_files)} file(s) uploaded:")
+                for file in uploaded_files:
+                    st.write(f"- {file.name} ({file.type})")
 
-    with col2:
-        st.subheader("🖥️ Screen Sharing")
-        st.markdown("**Share your screen with AI for analysis**")
+        with col2:
+            st.subheader("🖥️ Screen Sharing")
+            st.markdown("**Share your screen with AI for analysis**")
 
-        # Screen capture using JavaScript
-        screen_capture_js = """
-        <div id="screen-capture-container">
-            <button id="capture-screen" style="
-                background: linear-gradient(135deg, #2D87D3, #36a9e1);
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 500;
-                margin: 8px 0;
-                box-shadow: 0 4px 10px rgba(45,135,211,0.3);
-                transition: all 0.3s ease;
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(45,135,211,0.4)'" 
-               onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 10px rgba(45,135,211,0.3)'">
-                🖥️ Capture Screen
-            </button>
-            <canvas id="screen-canvas" style="display: none;"></canvas>
-            <div id="capture-status" style="margin-top: 10px; font-size: 0.9rem; color: #666;"></div>
-        </div>
+            # Screen capture using JavaScript
+            screen_capture_js = """
+            <div id="screen-capture-container">
+                <button id="capture-screen" style="
+                    background: linear-gradient(135deg, #2D87D3, #36a9e1);
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: 500;
+                    margin: 8px 0;
+                    box-shadow: 0 4px 10px rgba(45,135,211,0.3);
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(45,135,211,0.4)'" 
+                   onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 10px rgba(45,135,211,0.3)'">
+                    🖥️ Capture Screen
+                </button>
+                <canvas id="screen-canvas" style="display: none;"></canvas>
+                <div id="capture-status" style="margin-top: 10px; font-size: 0.9rem; color: #666;"></div>
+            </div>
 
-        <script>
-        document.getElementById('capture-screen').addEventListener('click', async function() {
-            const statusDiv = document.getElementById('capture-status');
-            const canvas = document.getElementById('screen-canvas');
-            const ctx = canvas.getContext('2d');
+            <script>
+            document.getElementById('capture-screen').addEventListener('click', async function() {
+                const statusDiv = document.getElementById('capture-status');
+                const canvas = document.getElementById('screen-canvas');
+                const ctx = canvas.getContext('2d');
 
-            try {
-                statusDiv.innerHTML = '📷 Requesting screen access...';
+                try {
+                    statusDiv.innerHTML = '📷 Requesting screen access...';
 
-                // Request screen capture
-                const stream = await navigator.mediaDevices.getDisplayMedia({
-                    video: { mediaSource: 'screen' }
-                });
+                    // Request screen capture
+                    const stream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { mediaSource: 'screen' }
+                    });
 
-                statusDiv.innerHTML = '🎥 Screen captured! Processing...';
+                    statusDiv.innerHTML = '🎥 Screen captured! Processing...';
 
-                // Create video element to capture frame
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.play();
+                    // Create video element to capture frame
+                    const video = document.createElement('video');
+                    video.srcObject = stream;
+                    video.play();
 
-                video.addEventListener('loadedmetadata', function() {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
+                    video.addEventListener('loadedmetadata', function() {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
 
-                    // Capture frame
-                    ctx.drawImage(video, 0, 0);
+                        // Capture frame
+                        ctx.drawImage(video, 0, 0);
 
-                    // Convert to blob and create download link
-                    canvas.toBlob(function(blob) {
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'screen-capture-' + new Date().getTime() + '.png';
-                        a.click();
+                        // Convert to blob and create download link
+                        canvas.toBlob(function(blob) {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'screen-capture-' + new Date().getTime() + '.png';
+                            a.click();
 
-                        statusDiv.innerHTML = '✅ Screen captured and downloaded! Upload the image above.';
+                            statusDiv.innerHTML = '✅ Screen captured and downloaded! Upload the image above.';
 
-                        // Stop screen sharing
-                        stream.getTracks().forEach(track => track.stop());
+                            // Stop screen sharing
+                            stream.getTracks().forEach(track => track.stop());
 
-                        URL.revokeObjectURL(url);
-                    }, 'image/png');
-                });
+                            URL.revokeObjectURL(url);
+                        }, 'image/png');
+                    });
 
-            } catch (err) {
-                console.error('Error capturing screen:', err);
-                statusDiv.innerHTML = '❌ Screen capture failed. Please try again or upload a screenshot manually.';
-            }
-        });
-        </script>
-        """
+                } catch (err) {
+                    console.error('Error capturing screen:', err);
+                    statusDiv.innerHTML = '❌ Screen capture failed. Please try again or upload a screenshot manually.';
+                }
+            });
+            </script>
+            """
 
-        st.components.v1.html(screen_capture_js, height=150)
+            st.components.v1.html(screen_capture_js, height=150)
 
-        st.markdown("""
-        **How to use Screen Sharing:**
-        1. Click "Capture Screen" button
-        2. Select the screen/window to share
-        3. The screenshot will be automatically downloaded
-        4. Upload the downloaded image using the file uploader above
-        5. Ask AI to analyze your screen content
-        """)
+            st.markdown("""
+            **How to use Screen Sharing:**
+            1. Click "Capture Screen" button
+            2. Select the screen/window to share
+            3. The screenshot will be automatically downloaded
+            4. Upload the downloaded image using the file uploader above
+            5. Ask AI to analyze your screen content
+            """)
 
-    if uploaded_files and st.button("Clear Files"):
-        st.rerun()
+        if uploaded_files and st.button("Clear Files"):
+            st.rerun()
 
 # Copy conversation section (if enabled)
 if len(st.session_state.messages) > 0 and (wl_config.features.enable_export_conversation or wl_config.features.enable_copy_conversation):
