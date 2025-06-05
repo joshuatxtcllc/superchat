@@ -178,6 +178,12 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
+    st.markdown("### Configuration")
+    if st.button("⚙️ Configure App Settings", use_container_width=True):
+        st.session_state.show_config = True
+        st.rerun()
+
+    st.divider()
     st.markdown("### About MCP")
     st.markdown("""
     This interface implements the Model Context Protocol (MCP), which allows for 
@@ -188,6 +194,19 @@ with st.sidebar:
     - Share context between models for seamless transitions
     - Optimize the conversation flow based on model strengths
     """)
+
+# Configuration interface
+if 'show_config' in st.session_state and st.session_state.show_config:
+    from configuration_manager import render_configuration_manager
+    
+    # Back button
+    if st.button("← Back to Chat"):
+        st.session_state.show_config = False
+        st.rerun()
+    
+    st.divider()
+    render_configuration_manager()
+    st.stop()
 
 # Main interface with branded header
 st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
