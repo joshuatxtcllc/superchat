@@ -9,23 +9,26 @@ from model_recommender import ModelRecommender
 from mcp_handler import MCPHandler
 from conversation_starters import get_conversation_starters
 from image_generator import ImageGenerator
+from white_label_config import WhiteLabelConfig
 from utils import (
     get_avatar, 
     format_message, 
     load_session_history, 
-    save_session_history,
-    custom_css
+    save_session_history
 )
+
+# Initialize white-label configuration
+wl_config = WhiteLabelConfig()
 
 # Page configuration
 st.set_page_config(
-    page_title="Multi-Model Chat Interface",
-    page_icon="💬",
+    page_title=wl_config.branding.app_title,
+    page_icon=wl_config.branding.app_icon,
     layout="wide"
 )
 
-# Apply custom CSS
-st.markdown(custom_css, unsafe_allow_html=True)
+# Apply custom branded CSS
+st.markdown(wl_config.get_custom_css(), unsafe_allow_html=True)
 
 # Initialize session state variables
 if 'messages' not in st.session_state:
@@ -89,13 +92,19 @@ with st.sidebar:
     
     # Single model mode
     st.subheader("Model Selection")
+    
+    # Filter models based on white-label configuration
+    available_models = list(model_handler.models.keys())
+    if wl_config.features.allowed_models:
+        available_models = [m for m in available_models if m in wl_config.features.allowed_models]
+    
     # Model selector
     model_name = st.selectbox(
         "Select AI Model",
-        options=list(model_handler.models.keys()),
-        index=list(model_handler.get_model_keys()).index(
-            next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), "GPT-4o")
-        )
+        options=available_models,
+        index=available_models.index(
+            next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), available_models[0])
+        ) if available_models else 0
     )
     
     # Show model information
@@ -112,21 +121,23 @@ with st.sidebar:
     
     st.session_state.current_model = model_handler.models[model_name]
     
-    # Toggle comparison mode
-    st.divider()
-    st.subheader("Comparison Mode")
-    comparison_mode = st.toggle("Enable Model Comparison", value=st.session_state.comparison_mode)
-    st.session_state.comparison_mode = comparison_mode
+    # Toggle comparison mode (if enabled in white-label config)
+    if wl_config.features.enable_model_comparison:
+        st.divider()
+        st.subheader("Comparison Mode")
+        comparison_mode = st.toggle("Enable Model Comparison", value=st.session_state.comparison_mode)
+        st.session_state.comparison_mode = comparison_mode
     
-    # Deep thinking mode
-    st.divider()
-    st.subheader("Deep Thinking")
-    if 'deep_thinking' not in st.session_state:
-        st.session_state.deep_thinking = False
-    
-    deep_thinking = st.toggle("Enable Deep Thinking", value=st.session_state.deep_thinking, 
-                             help="Shows the AI's reasoning process transparently")
-    st.session_state.deep_thinking = deep_thinking
+    # Deep thinking mode (if enabled in white-label config)
+    if wl_config.features.enable_deep_thinking:
+        st.divider()
+        st.subheader("Deep Thinking")
+        if 'deep_thinking' not in st.session_state:
+            st.session_state.deep_thinking = False
+        
+        deep_thinking = st.toggle("Enable Deep Thinking", value=st.session_state.deep_thinking, 
+                                 help="Shows the AI's reasoning process transparently")
+        st.session_state.deep_thinking = deep_thinking
     
     if st.session_state.comparison_mode:
         st.session_state.comparison_models = st.multiselect(
@@ -178,23 +189,24 @@ with st.sidebar:
     - Optimize the conversation flow based on model strengths
     """)
 
-# Main interface
-st.markdown("""
-<header>
-    <h1>Multi-Model Chat Interface</h1>
-    <p style="font-size: 1.2rem; color: #555; margin-top: -0.5rem; margin-bottom: 1.5rem; font-weight: 300; line-height: 1.6;">
-        Interact with multiple AI models in one unified experience with
-        <span style="background: linear-gradient(90deg, #2D87D3, #36a9e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600;">Model Context Protocol</span>
-        support
-    </p>
-    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: #2D87D3; font-weight: 500;">
+# Main interface with branded header
+st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
+
+# Feature badges (conditional based on white-label config)
+feature_badges = []
+if wl_config.features.enable_model_recommender:
+    feature_badges.append("""
+        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: var(--primary-color); font-weight: 500;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
             </svg>
             AI-powered recommender
         </div>
-        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: #2D87D3; font-weight: 500;">
+    """)
+
+if wl_config.features.enable_model_comparison:
+    feature_badges.append("""
+        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: var(--primary-color); font-weight: 500;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
                 <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
                 <path d="M9 12h6"></path>
@@ -202,9 +214,14 @@ st.markdown("""
             </svg>
             Multi-model comparison
         </div>
+    """)
+
+if feature_badges:
+    st.markdown(f"""
+    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+        {''.join(feature_badges)}
     </div>
-</header>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 # Model recommender section
 if 'show_recommender' in st.session_state and st.session_state.show_recommender:
@@ -230,10 +247,14 @@ if 'show_recommender' in st.session_state and st.session_state.show_recommender:
 
     st.divider()
 
-# Conversation starters - collapsible interface
-if len(st.session_state.messages) == 0:
+# Conversation starters - collapsible interface (if enabled)
+if len(st.session_state.messages) == 0 and wl_config.features.enable_conversation_starters:
     with st.expander("💬 Conversation Starters - Click to explore topics", expanded=False):
-        starters = get_conversation_starters()
+        # Use custom conversation starters if configured, otherwise use defaults
+        if wl_config.features.custom_conversation_starters:
+            starters = wl_config.features.custom_conversation_starters
+        else:
+            starters = get_conversation_starters()
         
         # Create tabs for different categories
         tab_names = list(starters.keys())
@@ -319,8 +340,9 @@ for idx, message in enumerate(st.session_state.messages):
                 with st.expander("MCP Context Information", expanded=False):
                     st.json(message["mcp_context"])
 
-# Image generation section
-with st.expander("🎨 AI Image Generation", expanded=False):
+# Image generation section (if enabled)
+if wl_config.features.enable_image_generation:
+    with st.expander("🎨 AI Image Generation", expanded=False):
     st.subheader("Generate Images with AI")
     
     col1, col2 = st.columns(2)
@@ -392,8 +414,9 @@ with st.expander("🎨 AI Image Generation", expanded=False):
         - Specify the subject and setting clearly
         """)
 
-# File upload and screen sharing section
-with st.expander("📎 File Upload & Screen Sharing", expanded=False):
+# File upload and screen sharing section (if enabled)
+if wl_config.features.enable_file_upload or wl_config.features.enable_screen_sharing:
+    with st.expander("📎 File Upload & Screen Sharing", expanded=False):
     col1, col2 = st.columns(2)
     
     with col1:
@@ -503,8 +526,8 @@ with st.expander("📎 File Upload & Screen Sharing", expanded=False):
     if uploaded_files and st.button("Clear Files"):
         st.rerun()
 
-# Copy conversation section
-if len(st.session_state.messages) > 0:
+# Copy conversation section (if enabled)
+if len(st.session_state.messages) > 0 and (wl_config.features.enable_export_conversation or wl_config.features.enable_copy_conversation):
     with st.expander("📋 Export & Share Conversation", expanded=False):
         col1, col2, col3 = st.columns(3)
         
@@ -682,50 +705,5 @@ with st.container():
         # The text area will be cleared automatically on rerun
         st.rerun()
 
-# Add a modern footer
-st.markdown("""
-<div class="footer">
-    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 1.2rem;">
-        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #2D87D3, #36a9e1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 0.8rem; box-shadow: 0 4px 10px rgba(45,135,211,0.3);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                <path d="M9 11h6"></path>
-                <path d="M12 8v6"></path>
-            </svg>
-        </div>
-        <div style="font-weight: 700; font-size: 1.3rem; color: #2D87D3; letter-spacing: -0.5px;">Multi-Model Chat Interface</div>
-    </div>
-    
-    <div style="color: #666; margin-bottom: 1.5rem; font-size: 1.05rem;">
-        Powered by <span style="background: linear-gradient(90deg, #2D87D3, #36a9e1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 600;">Model Context Protocol (MCP)</span>
-    </div>
-    
-    <div style="display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; font-size: 0.95rem; color: #555; background-color: rgba(255,255,255,0.6); padding: 0.7rem 1.2rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.7rem;">
-                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                <path d="M9 12l2 2 4-4"></path>
-            </svg>
-            <span style="font-weight: 500;">Multiple AI Models</span>
-        </div>
-        <div style="display: flex; align-items: center; font-size: 0.95rem; color: #555; background-color: rgba(255,255,255,0.6); padding: 0.7rem 1.2rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.7rem;">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                <path d="M2 17l10 5 10-5"></path>
-                <path d="M2 12l10 5 10-5"></path>
-            </svg>
-            <span style="font-weight: 500;">Smart Recommendations</span>
-        </div>
-        <div style="display: flex; align-items: center; font-size: 0.95rem; color: #555; background-color: rgba(255,255,255,0.6); padding: 0.7rem 1.2rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.03);">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.7rem;">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-            </svg>
-            <span style="font-weight: 500;">MCP Support</span>
-        </div>
-    </div>
-    
-    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.05); color: #888; font-size: 0.9rem; font-weight: 400;">
-        © 2025 · All Rights Reserved · <span style="color: #2D87D3;">Terms of Service</span> · <span style="color: #2D87D3;">Privacy Policy</span>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Add branded footer
+st.markdown(wl_config.get_footer_html(), unsafe_allow_html=True)

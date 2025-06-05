@@ -1,0 +1,53 @@
+
+{
+  "branding": {
+    "company_name": "Multi-Model Chat Interface",
+    "company_logo_url": "",
+    "company_website": "",
+    "company_support_email": "",
+    "app_title": "Multi-Model Chat Interface",
+    "app_description": "Interact with multiple AI models in one unified experience",
+    "app_icon": "💬",
+    "app_tagline": "Powered by Model Context Protocol",
+    "primary_color": "#2D87D3",
+    "secondary_color": "#36a9e1",
+    "background_color": "#f8f9fa",
+    "accent_color": "#f0f7ff",
+    "text_color": "#333",
+    "show_powered_by": true,
+    "custom_footer_text": "",
+    "copyright_text": "© 2025 · All Rights Reserved",
+    "custom_css": ""
+  },
+  "features": {
+    "enable_model_comparison": true,
+    "enable_conversation_starters": true,
+    "enable_model_recommender": true,
+    "enable_deep_thinking": true,
+    "enable_image_generation": true,
+    "enable_file_upload": true,
+    "enable_screen_sharing": true,
+    "enable_mcp": true,
+    "allowed_models": null,
+    "default_model": "gpt-4o",
+    "enable_export_conversation": true,
+    "enable_copy_conversation": true,
+    "enable_conversation_history": true,
+    "show_model_info": true,
+    "show_api_status": true,
+    "max_messages_per_session": 20,
+    "min_time_between_messages": 2.0,
+    "max_message_length": 10000,
+    "custom_conversation_starters": null
+  },
+  "deployment": {
+    "required_api_keys": null,
+    "enable_analytics": false,
+    "analytics_tracking_id": "",
+    "custom_domain": "",
+    "enable_authentication": false,
+    "allowed_users": null,
+    "daily_message_limit": 100,
+    "monthly_usage_limit": 1000
+  }
+}
