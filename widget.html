@@ -1,0 +1,96 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>AI Chat Widget</title>
+    <style>
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 10000;
+            background: white;
+            display: none;
+        }
+        
+        .chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2D87D3, #36a9e1);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(45,135,211,0.3);
+            z-index: 10001;
+        }
+        
+        .chat-widget.open {
+            display: block;
+        }
+        
+        .widget-header {
+            background: linear-gradient(135deg, #2D87D3, #36a9e1);
+            color: white;
+            padding: 15px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .widget-content {
+            height: calc(100% - 60px);
+            border: none;
+            width: 100%;
+            border-radius: 0 0 15px 15px;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="chat-toggle" onclick="toggleChat()">💬</button>
+    
+    <div class="chat-widget" id="chatWidget">
+        <div class="widget-header">
+            <span>AI Assistant</span>
+            <button class="close-btn" onclick="toggleChat()">×</button>
+        </div>
+        <iframe class="widget-content" src="YOUR_REPL_URL"></iframe>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const widget = document.getElementById('chatWidget');
+            widget.classList.toggle('open');
+        }
+        
+        // Auto-hide on outside click
+        document.addEventListener('click', function(event) {
+            const widget = document.getElementById('chatWidget');
+            const toggle = document.querySelector('.chat-toggle');
+            
+            if (!widget.contains(event.target) && !toggle.contains(event.target)) {
+                widget.classList.remove('open');
+            }
+        });
+    </script>
+</body>
+</html>
