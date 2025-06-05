@@ -109,6 +109,16 @@ with st.sidebar:
     comparison_mode = st.toggle("Enable Model Comparison", value=st.session_state.comparison_mode)
     st.session_state.comparison_mode = comparison_mode
     
+    # Deep thinking mode
+    st.divider()
+    st.subheader("Deep Thinking")
+    if 'deep_thinking' not in st.session_state:
+        st.session_state.deep_thinking = False
+    
+    deep_thinking = st.toggle("Enable Deep Thinking", value=st.session_state.deep_thinking, 
+                             help="Shows the AI's reasoning process transparently")
+    st.session_state.deep_thinking = deep_thinking
+    
     if st.session_state.comparison_mode:
         st.session_state.comparison_models = st.multiselect(
             "Select models to compare",
@@ -252,8 +262,13 @@ if 'selected_starter' in st.session_state and st.session_state.selected_starter:
     messages_for_api = mcp_handler.prepare_messages(st.session_state.messages)
     
     # Get AI response using current model
-    with st.spinner("Thinking..."):
-        response = model_handler.get_response(messages_for_api, st.session_state.current_model)
+    thinking_text = " (deep thinking enabled)" if st.session_state.deep_thinking else ""
+    with st.spinner(f"Thinking{thinking_text}..."):
+        response = model_handler.get_response(
+            messages_for_api, 
+            st.session_state.current_model,
+            deep_thinking=st.session_state.deep_thinking
+        )
         
         # Add MCP context if available
         mcp_context = mcp_handler.extract_mcp_context(response)
@@ -267,7 +282,8 @@ if 'selected_starter' in st.session_state and st.session_state.selected_starter:
             "timestamp": timestamp,
             "model": current_model_name,
             "model_id": st.session_state.current_model,
-            "mcp_context": mcp_context
+            "mcp_context": mcp_context,
+            "deep_thinking": st.session_state.deep_thinking
         })
         
         # Save conversation history
@@ -293,6 +309,63 @@ for idx, message in enumerate(st.session_state.messages):
             if message.get("mcp_context") and message["role"] == "assistant":
                 with st.expander("MCP Context Information", expanded=False):
                     st.json(message["mcp_context"])
+
+# File upload section
+with st.expander("📎 File Upload - Upload images or documents", expanded=False):
+    uploaded_files = st.file_uploader(
+        "Choose files to upload",
+        accept_multiple_files=True,
+        type=['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pdf', 'txt', 'doc', 'docx', 'csv', 'json'],
+        help="Upload images, documents, or text files to include in your conversation"
+    )
+    
+    if uploaded_files:
+        st.write(f"📁 {len(uploaded_files)} file(s) uploaded:")
+        for file in uploaded_files:
+            st.write(f"- {file.name} ({file.type})")
+        
+        if st.button("Clear Files"):
+            st.rerun()
+
+# Copy conversation section
+if len(st.session_state.messages) > 0:
+    with st.expander("📋 Export & Share Conversation", expanded=False):
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            # Generate conversation text
+            conversation_text = ""
+            for msg in st.session_state.messages:
+                role = "You" if msg["role"] == "user" else f"AI ({msg.get('model', 'Assistant')})"
+                timestamp = msg.get("timestamp", "")
+                conversation_text += f"{role} [{timestamp}]:\n{msg['content']}\n\n"
+            
+            if st.button("📋 Copy Conversation", use_container_width=True):
+                st.code(conversation_text, language="text")
+                st.success("Conversation text displayed above - select and copy manually")
+        
+        with col2:
+            if st.button("📧 Prepare Email", use_container_width=True):
+                email_subject = f"AI Conversation - {datetime.now().strftime('%Y-%m-%d')}"
+                email_body = f"Subject: {email_subject}\n\n{conversation_text}"
+                st.text_area("Email Content (copy this):", email_body, height=200)
+        
+        with col3:
+            conversation_data = {
+                "conversation_id": st.session_state.conversation_id,
+                "messages": st.session_state.messages,
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "total_messages": len(st.session_state.messages)
+            }
+            st.download_button(
+                label="💾 Download JSON",
+                data=json.dumps(conversation_data, indent=2),
+                file_name=f"conversation_{st.session_state.conversation_id}.json",
+                mime="application/json",
+                use_container_width=True
+            )
+
+st.divider()
 
 # Input area
 with st.container():
@@ -326,7 +399,7 @@ with st.container():
         """, unsafe_allow_html=True)
     
     with col2:
-        send_button = st.button("""<span style="font-weight: 600;">Send</span>""", use_container_width=True)
+        send_button = st.button("Send", use_container_width=True, type="primary")
     
     st.markdown("</div>", unsafe_allow_html=True)
     
@@ -363,13 +436,22 @@ with st.container():
         # Process with MCP if enabled
         messages_for_api = mcp_handler.prepare_messages(st.session_state.messages)
         
+        # Get uploaded files if any
+        current_files = uploaded_files if 'uploaded_files' in locals() else None
+        
         # In comparison mode, get responses from all selected models
         if st.session_state.comparison_mode and st.session_state.comparison_models:
             for model_name in st.session_state.comparison_models:
                 model_id = model_handler.models[model_name]
                 
-                with st.spinner(f"Getting response from {model_name}..."):
-                    response = model_handler.get_response(messages_for_api, model_id)
+                thinking_text = " (with deep thinking)" if st.session_state.deep_thinking else ""
+                with st.spinner(f"Getting response from {model_name}{thinking_text}..."):
+                    response = model_handler.get_response(
+                        messages_for_api, 
+                        model_id, 
+                        deep_thinking=st.session_state.deep_thinking,
+                        uploaded_files=current_files
+                    )
                     
                     # Add MCP context if available
                     mcp_context = mcp_handler.extract_mcp_context(response)
@@ -382,15 +464,23 @@ with st.container():
                         "timestamp": timestamp,
                         "model": model_name,
                         "model_id": model_id,
-                        "mcp_context": mcp_context
+                        "mcp_context": mcp_context,
+                        "deep_thinking": st.session_state.deep_thinking,
+                        "files_processed": len(current_files) if current_files else 0
                     })
                     
                     # Save conversation history
                     save_session_history(st.session_state.conversation_id, st.session_state.messages)
         else:
             # Get AI response using current model
-            with st.spinner("Thinking..."):
-                response = model_handler.get_response(messages_for_api, st.session_state.current_model)
+            thinking_text = " (deep thinking enabled)" if st.session_state.deep_thinking else ""
+            with st.spinner(f"Thinking{thinking_text}..."):
+                response = model_handler.get_response(
+                    messages_for_api, 
+                    st.session_state.current_model,
+                    deep_thinking=st.session_state.deep_thinking,
+                    uploaded_files=current_files
+                )
                 
                 # Add MCP context if available
                 mcp_context = mcp_handler.extract_mcp_context(response)
@@ -404,7 +494,9 @@ with st.container():
                     "timestamp": timestamp,
                     "model": current_model_name,
                     "model_id": st.session_state.current_model,
-                    "mcp_context": mcp_context
+                    "mcp_context": mcp_context,
+                    "deep_thinking": st.session_state.deep_thinking,
+                    "files_processed": len(current_files) if current_files else 0
                 })
                 
                 # Save conversation history

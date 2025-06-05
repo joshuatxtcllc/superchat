@@ -179,9 +179,23 @@ class ModelHandler:
             "provider": "unknown"
         })
     
-    def get_response(self, messages, model_id):
+    def get_response(self, messages, model_id, deep_thinking=False, uploaded_files=None):
         """Get a response from the specified AI model"""
         try:
+            # Add file context if files are uploaded
+            if uploaded_files:
+                file_context = self._process_uploaded_files(uploaded_files)
+                if file_context:
+                    # Add file information to the last user message
+                    if messages and messages[-1]["role"] == "user":
+                        messages[-1]["content"] += f"\n\n[Uploaded files context: {file_context}]"
+            
+            # Add deep thinking prompt if enabled
+            if deep_thinking:
+                thinking_prompt = "\n\nPlease show your reasoning process step by step before providing your final answer. Use a 'Thinking:' section to show your thought process transparently."
+                if messages and messages[-1]["role"] == "user":
+                    messages[-1]["content"] += thinking_prompt
+            
             # Get the provider from model info
             model_info = self.get_model_info(model_id)
             provider = model_info.get("provider", "unknown")
@@ -199,6 +213,51 @@ class ModelHandler:
         
         except Exception as e:
             return f"Error getting response: {str(e)}"
+    
+    def _process_uploaded_files(self, uploaded_files):
+        """Process uploaded files and return context string"""
+        file_info = []
+        
+        for file in uploaded_files:
+            try:
+                file_type = file.type
+                file_name = file.name
+                
+                if file_type.startswith('text/') or file_name.endswith('.txt'):
+                    # Read text files
+                    content = file.read().decode('utf-8')[:2000]  # Limit to first 2000 chars
+                    file_info.append(f"Text file '{file_name}': {content[:500]}{'...' if len(content) > 500 else ''}")
+                
+                elif file_type.startswith('image/'):
+                    # For images, just note the presence and type
+                    file_info.append(f"Image file '{file_name}' ({file_type}) uploaded")
+                
+                elif file_name.endswith('.csv'):
+                    # Read CSV files
+                    import csv
+                    import io
+                    content = file.read().decode('utf-8')
+                    csv_reader = csv.reader(io.StringIO(content))
+                    rows = list(csv_reader)[:10]  # First 10 rows
+                    file_info.append(f"CSV file '{file_name}' with {len(rows)} rows (showing first 10): {str(rows)}")
+                
+                elif file_name.endswith('.json'):
+                    # Read JSON files
+                    content = file.read().decode('utf-8')
+                    json_data = json.loads(content)
+                    file_info.append(f"JSON file '{file_name}': {str(json_data)[:500]}{'...' if len(str(json_data)) > 500 else ''}")
+                
+                else:
+                    # For other file types, just note the presence
+                    file_info.append(f"File '{file_name}' ({file_type}) uploaded")
+                
+                # Reset file pointer for potential future reads
+                file.seek(0)
+                
+            except Exception as e:
+                file_info.append(f"Error processing file '{file.name}': {str(e)}")
+        
+        return " | ".join(file_info) if file_info else None
     
     def _get_openai_response(self, messages, model_id):
         """Get a response from OpenAI models"""
