@@ -208,3 +208,168 @@ class HubConnectionManager:
 def create_hub_connection(config: WhiteLabelConfig) -> HubConnectionManager:
     """Factory function to create Hub connection manager"""
     return HubConnectionManager(config)
+import requests
+import json
+import time
+from datetime import datetime
+
+class HubConnectionManager:
+    """Manages connections to the Central Hub Dashboard"""
+    
+    def __init__(self, config):
+        self.config = config
+        self.session = requests.Session()
+        
+    def test_connection(self):
+        """Test connection to the Hub Dashboard"""
+        if not self.config.connection.enable_hub_integration:
+            return {
+                "success": False,
+                "message": "Hub integration is disabled"
+            }
+            
+        if not self.config.connection.hub_dashboard_url:
+            return {
+                "success": False,
+                "message": "Hub Dashboard URL not configured"
+            }
+            
+        if not self.config.connection.hub_api_key:
+            return {
+                "success": False,
+                "message": "Hub API key not configured"
+            }
+        
+        try:
+            # Test connection endpoint
+            test_url = f"{self.config.connection.hub_dashboard_url.rstrip('/')}/api/health"
+            
+            headers = {
+                "X-API-Key": self.config.connection.hub_api_key,
+                "Content-Type": "application/json"
+            }
+            
+            start_time = time.time()
+            response = self.session.get(
+                test_url,
+                headers=headers,
+                timeout=self.config.connection.connection_timeout
+            )
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                return {
+                    "success": True,
+                    "message": "Hub connection successful",
+                    "response_time": response_time,
+                    "status_code": response.status_code
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Hub returned status {response.status_code}: {response.text}",
+                    "status_code": response.status_code
+                }
+                
+        except requests.exceptions.ConnectionError:
+            return {
+                "success": False,
+                "message": "Could not connect to Hub Dashboard. Check the URL."
+            }
+        except requests.exceptions.Timeout:
+            return {
+                "success": False,
+                "message": "Connection to Hub Dashboard timed out"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Connection error: {str(e)}"
+            }
+    
+    def register_app(self):
+        """Register this app instance with the Hub"""
+        if not self.test_connection()['success']:
+            return {
+                "success": False,
+                "message": "Cannot register - Hub connection failed"
+            }
+        
+        try:
+            register_url = f"{self.config.connection.hub_dashboard_url.rstrip('/')}/api/apps/register"
+            
+            headers = {
+                "X-API-Key": self.config.connection.hub_api_key,
+                "Content-Type": "application/json"
+            }
+            
+            app_data = {
+                "app_id": self.config.connection.app_id,
+                "app_name": self.config.branding.app_title,
+                "company_name": self.config.branding.company_name,
+                "registration_time": datetime.now().isoformat(),
+                "features": {
+                    "model_comparison": self.config.features.enable_model_comparison,
+                    "image_generation": self.config.features.enable_image_generation,
+                    "file_upload": self.config.features.enable_file_upload
+                }
+            }
+            
+            response = self.session.post(
+                register_url,
+                headers=headers,
+                json=app_data,
+                timeout=self.config.connection.connection_timeout
+            )
+            
+            if response.status_code in [200, 201]:
+                data = response.json() if response.content else {}
+                return {
+                    "success": True,
+                    "message": "App registered successfully",
+                    "registration_id": data.get("registration_id", "unknown")
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Registration failed: {response.status_code} - {response.text}"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Registration error: {str(e)}"
+            }
+    
+    def send_analytics_event(self, event_type, event_data):
+        """Send an analytics event to the Hub"""
+        if not self.config.connection.enable_hub_integration:
+            return False
+            
+        try:
+            events_url = f"{self.config.connection.hub_dashboard_url.rstrip('/')}/api/events"
+            
+            headers = {
+                "X-API-Key": self.config.connection.hub_api_key,
+                "Content-Type": "application/json"
+            }
+            
+            event_payload = {
+                "app_id": self.config.connection.app_id,
+                "event_type": event_type,
+                "event_data": event_data,
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            response = self.session.post(
+                events_url,
+                headers=headers,
+                json=event_payload,
+                timeout=5  # Short timeout for analytics
+            )
+            
+            return response.status_code in [200, 201, 202]
+            
+        except:
+            # Silently fail for analytics
+            return False

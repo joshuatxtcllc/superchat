@@ -205,28 +205,24 @@ with st.sidebar:
 
 # Configuration Manager interface
 if 'show_config_manager' in st.session_state and st.session_state.show_config_manager:
-    from configuration_manager import render_configuration_manager
-    
     # Back button
     if st.button("← Back to Chat"):
         st.session_state.show_config_manager = False
         st.rerun()
     
     st.divider()
-    render_configuration_manager()
-    st.stop()
-
-# Quick Configuration interface (simplified)
-if 'show_config' in st.session_state and st.session_state.show_config:
-    from configuration_manager import render_configuration_manager
     
-    # Back button
-    if st.button("← Back to Chat"):
-        st.session_state.show_config = False
+    # Import and render configuration manager
+    try:
+        from configuration_manager import render_configuration_manager
+        render_configuration_manager()
+    except Exception as e:
+        st.error(f"Error loading Configuration Manager: {e}")
+        st.info("Falling back to quick settings...")
+        st.session_state.show_config_manager = False
+        st.session_state.show_config = True
         st.rerun()
     
-    st.divider()
-    render_configuration_manager()
     st.stop()
 
 # Main interface with branded header

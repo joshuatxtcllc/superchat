@@ -166,3 +166,140 @@ Examples:
 
 if __name__ == "__main__":
     main()
+def create_template_configs():
+    """Create template configurations for different use cases"""
+    return {
+        "corporate": {
+            "branding": {
+                "company_name": "Enterprise Solutions Inc.",
+                "app_title": "Corporate AI Assistant",
+                "app_description": "Professional AI assistance for enterprise workflows",
+                "app_icon": "🏢",
+                "app_tagline": "Empowering business with AI",
+                "primary_color": "#1f4e79",
+                "secondary_color": "#2d87d3",
+                "company_logo_url": "",
+                "company_website": "https://yourcompany.com",
+                "company_support_email": "support@yourcompany.com",
+                "custom_footer_text": "Enterprise AI Solutions",
+                "copyright_text": "© 2024 Enterprise Solutions Inc.",
+                "show_powered_by": False
+            },
+            "features": {
+                "enable_model_comparison": True,
+                "enable_deep_thinking": True,
+                "enable_image_generation": False,
+                "enable_file_upload": True,
+                "enable_conversation_starters": True,
+                "enable_model_recommender": True,
+                "max_messages_per_session": 100,
+                "default_model": "gpt-4o",
+                "min_time_between_messages": 1.0
+            }
+        },
+        "education": {
+            "branding": {
+                "company_name": "EduTech Learning",
+                "app_title": "Educational AI Tutor",
+                "app_description": "AI-powered learning assistant for students and educators",
+                "app_icon": "🎓",
+                "app_tagline": "Learn smarter with AI",
+                "primary_color": "#2e8b57",
+                "secondary_color": "#90ee90",
+                "company_logo_url": "",
+                "company_website": "https://edutech.com",
+                "company_support_email": "help@edutech.com",
+                "custom_footer_text": "Making learning accessible for everyone",
+                "copyright_text": "© 2024 EduTech Learning",
+                "show_powered_by": True
+            },
+            "features": {
+                "enable_model_comparison": True,
+                "enable_deep_thinking": True,
+                "enable_image_generation": True,
+                "enable_file_upload": True,
+                "enable_conversation_starters": True,
+                "enable_model_recommender": True,
+                "max_messages_per_session": 50,
+                "default_model": "gpt-4o-mini",
+                "min_time_between_messages": 0.5
+            }
+        },
+        "healthcare": {
+            "branding": {
+                "company_name": "HealthAI Solutions",
+                "app_title": "Medical AI Assistant",
+                "app_description": "AI support for healthcare professionals and research",
+                "app_icon": "🏥",
+                "app_tagline": "Advancing healthcare with AI",
+                "primary_color": "#dc143c",
+                "secondary_color": "#ff6b6b",
+                "company_logo_url": "",
+                "company_website": "https://healthai.com",
+                "company_support_email": "support@healthai.com",
+                "custom_footer_text": "Not for diagnostic purposes",
+                "copyright_text": "© 2024 HealthAI Solutions",
+                "show_powered_by": False
+            },
+            "features": {
+                "enable_model_comparison": False,
+                "enable_deep_thinking": True,
+                "enable_image_generation": False,
+                "enable_file_upload": True,
+                "enable_conversation_starters": False,
+                "enable_model_recommender": False,
+                "max_messages_per_session": 30,
+                "default_model": "claude-3-5-sonnet-20241022",
+                "min_time_between_messages": 2.0
+            }
+        },
+        "creative": {
+            "branding": {
+                "company_name": "Creative Studio AI",
+                "app_title": "Creative AI Companion",
+                "app_description": "AI-powered creativity and content generation platform",
+                "app_icon": "🎨",
+                "app_tagline": "Unleash your creativity",
+                "primary_color": "#9932cc",
+                "secondary_color": "#da70d6",
+                "company_logo_url": "",
+                "company_website": "https://creativestudio.ai",
+                "company_support_email": "hello@creativestudio.ai",
+                "custom_footer_text": "Where imagination meets AI",
+                "copyright_text": "© 2024 Creative Studio AI",
+                "show_powered_by": True
+            },
+            "features": {
+                "enable_model_comparison": True,
+                "enable_deep_thinking": False,
+                "enable_image_generation": True,
+                "enable_file_upload": True,
+                "enable_conversation_starters": True,
+                "enable_model_recommender": True,
+                "max_messages_per_session": 200,
+                "default_model": "gpt-4o",
+                "min_time_between_messages": 0.0
+            }
+        }
+    }
+
+def setup_white_label_deployment(config):
+    """Set up a white label deployment with the given configuration"""
+    try:
+        # Save the configuration
+        config.save_config()
+        
+        # Create any necessary directories
+        os.makedirs("conversation_history", exist_ok=True)
+        os.makedirs("attached_assets", exist_ok=True)
+        
+        return {
+            "success": True,
+            "message": "White label deployment configured successfully",
+            "config_file": "white_label_config.json"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Failed to setup deployment: {str(e)}"
+        }
