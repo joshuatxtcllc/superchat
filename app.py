@@ -343,7 +343,7 @@ for idx, message in enumerate(st.session_state.messages):
 # Image generation section (if enabled)
 if wl_config.features.enable_image_generation:
     with st.expander("🎨 AI Image Generation", expanded=False):
-    st.subheader("Generate Images with AI")
+        st.subheader("Generate Images with AI")
     
     col1, col2 = st.columns(2)
     
