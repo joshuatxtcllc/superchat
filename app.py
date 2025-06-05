@@ -579,82 +579,20 @@ if wl_config.features.enable_file_upload or wl_config.features.enable_screen_sha
             st.subheader("🖥️ Screen Sharing")
             st.markdown("**Share your screen with AI for analysis**")
 
-            # Screen capture using JavaScript
-            screen_capture_js = """
-            <div id="screen-capture-container">
-                <button id="capture-screen" style="
-                    background: linear-gradient(135deg, #2D87D3, #36a9e1);
-                    color: white;
-                    border: none;
-                    padding: 12px 24px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-weight: 500;
-                    margin: 8px 0;
-                    box-shadow: 0 4px 10px rgba(45,135,211,0.3);
-                    transition: all 0.3s ease;
-                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 15px rgba(45,135,211,0.4)'" 
-                   onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 4px 10px rgba(45,135,211,0.3)'">
-                    🖥️ Capture Screen
-                </button>
-                <canvas id="screen-canvas" style="display: none;"></canvas>
-                <div id="capture-status" style="margin-top: 10px; font-size: 0.9rem; color: #666;"></div>
-            </div>
-
-            <script>
-            document.getElementById('capture-screen').addEventListener('click', async function() {
-                const statusDiv = document.getElementById('capture-status');
-                const canvas = document.getElementById('screen-canvas');
-                const ctx = canvas.getContext('2d');
-
-                try {
-                    statusDiv.innerHTML = '📷 Requesting screen access...';
-
-                    // Request screen capture
-                    const stream = await navigator.mediaDevices.getDisplayMedia({
-                        video: { mediaSource: 'screen' }
-                    });
-
-                    statusDiv.innerHTML = '🎥 Screen captured! Processing...';
-
-                    // Create video element to capture frame
-                    const video = document.createElement('video');
-                    video.srcObject = stream;
-                    video.play();
-
-                    video.addEventListener('loadedmetadata', function() {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-
-                        // Capture frame
-                        ctx.drawImage(video, 0, 0);
-
-                        // Convert to blob and create download link
-                        canvas.toBlob(function(blob) {
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = 'screen-capture-' + new Date().getTime() + '.png';
-                            a.click();
-
-                            statusDiv.innerHTML = '✅ Screen captured and downloaded! Upload the image above.';
-
-                            // Stop screen sharing
-                            stream.getTracks().forEach(track => track.stop());
-
-                            URL.revokeObjectURL(url);
-                        }, 'image/png');
-                    });
-
-                } catch (err) {
-                    console.error('Error capturing screen:', err);
-                    statusDiv.innerHTML = '❌ Screen capture failed. Please try again or upload a screenshot manually.';
-                }
-            });
-            </script>
-            """
-
-            st.components.v1.html(screen_capture_js, height=150)
+            # Simplified screen capture button
+            if st.button("🖥️ Capture Screen Instructions"):
+                st.info("""
+                To capture your screen:
+                1. Take a screenshot using your system's screenshot tool
+                2. Upload the screenshot using the file uploader above
+                3. Ask the AI to analyze your screen content
+                """)
+                st.markdown("""
+                **Screenshot shortcuts:**
+                - **Windows**: Windows + Shift + S
+                - **Mac**: Cmd + Shift + 4
+                - **Linux**: PrtScn or Shift + PrtScn
+                """)
 
             st.markdown("""
             **How to use Screen Sharing:**
@@ -682,7 +620,7 @@ if len(st.session_state.messages) > 0 and (wl_config.features.enable_export_conv
                 conversation_text += f"{role} [{timestamp}]:\n{msg['content']}\n\n"
 
             if st.button("📋 Copy Conversation", use_container_width=True):
-                st.code(conversation_text, language="text")
+                st.text_area("Conversation text (select and copy):", conversation_text, height=200)
                 st.success("Conversation text displayed above - select and copy manually")
 
         with col2:
@@ -710,39 +648,16 @@ st.divider()
 
 # Input area
 with st.container():
-    st.markdown("""
-    <div style='background: linear-gradient(to bottom, #f8f9fa, #f0f7ff); 
-              padding: 1.5rem; 
-              border-radius: 1.2rem; 
-              box-shadow: 0 5px 20px rgba(0,0,0,0.08); 
-              border: 1px solid rgba(45,135,211,0.1);
-              position: relative;
-              overflow: hidden;'>
-        <div style='position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, transparent, #2D87D3, transparent);'></div>
-    """, unsafe_allow_html=True)
 
     user_input = st.text_area("Your message", height=120, key="user_input", placeholder="Type your message here... Ask anything or select a conversation starter above!")
 
     col1, col2 = st.columns([5, 1])
 
     with col1:
-        st.markdown("""
-        <div style='display: flex; align-items: center; margin-top: -0.5rem;'>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2D87D3" stroke-width="2" style="margin-right: 0.5rem;">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="16" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12" y2="8"></line>
-            </svg>
-            <span style="color: #555; font-size: 0.9rem; font-weight: 400;">
-                Type your message above and click 'Send' to get a response from the selected AI model
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        st.caption("💡 Type your message above and click 'Send' to get a response from the selected AI model")
 
     with col2:
         send_button = st.button("Send", use_container_width=True, type="primary")
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
     if send_button and user_input.strip():
         # Input validation
