@@ -178,16 +178,18 @@ with st.sidebar:
         st.rerun()
 
     st.divider()
-    st.markdown("### Configuration")
-    if st.button("⚙️ Configure App Settings", use_container_width=True):
-        st.session_state.show_config = True
-        st.rerun()
-
-    st.divider()
     st.markdown("### ⚙️ Configuration")
-    if st.button("Edit Branding & Settings", use_container_width=True):
-        st.session_state.show_config = True
-        st.rerun()
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🎨 Quick Settings", use_container_width=True):
+            st.session_state.show_config = True
+            st.rerun()
+    
+    with col2:
+        if st.button("🔧 Configuration Manager", use_container_width=True):
+            st.session_state.show_config_manager = True
+            st.rerun()
 
     st.divider()
     st.markdown("### About MCP")
@@ -201,7 +203,20 @@ with st.sidebar:
     - Optimize the conversation flow based on model strengths
     """)
 
-# Configuration interface
+# Configuration Manager interface
+if 'show_config_manager' in st.session_state and st.session_state.show_config_manager:
+    from configuration_manager import render_configuration_manager
+    
+    # Back button
+    if st.button("← Back to Chat"):
+        st.session_state.show_config_manager = False
+        st.rerun()
+    
+    st.divider()
+    render_configuration_manager()
+    st.stop()
+
+# Quick Configuration interface (simplified)
 if 'show_config' in st.session_state and st.session_state.show_config:
     from configuration_manager import render_configuration_manager
     
