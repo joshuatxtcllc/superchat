@@ -27,25 +27,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Ensure proper port configuration for Replit
-if __name__ == "__main__":
-    import subprocess
-    import sys
-    
-    # Kill any existing processes on port 5000
-    try:
-        subprocess.run(["pkill", "-f", "streamlit"], check=False)
-    except:
-        pass
-    
-    # Run streamlit with proper configuration
-    subprocess.run([
-        sys.executable, "-m", "streamlit", "run", "app.py",
-        "--server.port", "5000",
-        "--server.address", "0.0.0.0",
-        "--server.headless", "true"
-    ])
-
 # Apply custom branded CSS
 st.markdown(wl_config.get_custom_css(), unsafe_allow_html=True)
 
