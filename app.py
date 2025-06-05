@@ -263,35 +263,66 @@ if feature_badges:
 if 'show_config' in st.session_state and st.session_state.show_config:
     st.markdown("## ⚙️ Branding & Configuration Settings")
     
+    # Add custom CSS for form styling
+    st.markdown("""
+    <style>
+    .config-section {
+        border: 1px solid #e0e0e0;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        background-color: rgba(255,255,255,0.8);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .config-header {
+        color: #2D87D3;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 0.5rem;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     with st.form("config_form"):
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("Company Information")
+            st.markdown('<div class="config-section">', unsafe_allow_html=True)
+            st.markdown('<h3 class="config-header">Company Information</h3>', unsafe_allow_html=True)
             company_name = st.text_input("Company Name", value=wl_config.branding.company_name)
             company_website = st.text_input("Company Website", value=wl_config.branding.company_website)
             company_email = st.text_input("Support Email", value=wl_config.branding.company_support_email)
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            st.subheader("App Branding")
+            st.markdown('<div class="config-section">', unsafe_allow_html=True)
+            st.markdown('<h3 class="config-header">App Branding</h3>', unsafe_allow_html=True)
             app_title = st.text_input("App Title", value=wl_config.branding.app_title)
             app_description = st.text_area("App Description", value=wl_config.branding.app_description)
             app_icon = st.text_input("App Icon (emoji)", value=wl_config.branding.app_icon)
             app_tagline = st.text_input("App Tagline", value=wl_config.branding.app_tagline)
+            st.markdown('</div>', unsafe_allow_html=True)
             
         with col2:
-            st.subheader("Colors & Styling")
+            st.markdown('<div class="config-section">', unsafe_allow_html=True)
+            st.markdown('<h3 class="config-header">Colors & Styling</h3>', unsafe_allow_html=True)
             primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
             secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            st.subheader("Footer Settings")
+            st.markdown('<div class="config-section">', unsafe_allow_html=True)
+            st.markdown('<h3 class="config-header">Footer Settings</h3>', unsafe_allow_html=True)
             show_powered_by = st.checkbox("Show 'Powered by MCP'", value=wl_config.branding.show_powered_by)
             custom_footer = st.text_area("Custom Footer Text", value=wl_config.branding.custom_footer_text)
             copyright_text = st.text_input("Copyright Text", value=wl_config.branding.copyright_text)
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            st.subheader("Features")
+            st.markdown('<div class="config-section">', unsafe_allow_html=True)
+            st.markdown('<h3 class="config-header">Features</h3>', unsafe_allow_html=True)
             enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
             enable_file_upload = st.checkbox("Enable File Upload", value=wl_config.features.enable_file_upload)
             enable_model_comparison = st.checkbox("Enable Model Comparison", value=wl_config.features.enable_model_comparison)
+            st.markdown('</div>', unsafe_allow_html=True)
         
         col_save, col_cancel = st.columns(2)
         
