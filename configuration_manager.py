@@ -267,47 +267,37 @@ class ConfigurationManager:
             
             # Connection status
             st.subheader("Connection Status")
-            status_container = st.container()
             
             if st.button("Test Connection Now"):
-                with status_container:
-                    with st.spinner("Testing connection..."):
-                        result = self.hub_manager.test_connection()
-                        
-                        if result['success']:
-                            st.success(f"✅ {result['message']}")
-                            if 'response_time' in result:
-                                st.info(f"Response time: {result['response_time']:.2f}s")
-                        else:
-                            st.error(f"❌ {result['message']}")
+                with st.spinner("Testing connection..."):
+                    result = self.hub_manager.test_connection()
+                    
+                    if result['success']:
+                        st.success(f"✅ {result['message']}")
+                        if 'response_time' in result:
+                            st.info(f"Response time: {result['response_time']:.2f}s")
+                    else:
+                        st.error(f"❌ {result['message']}")
             
             # Setup instructions
             with st.expander("📋 Setup Instructions"):
-                st.markdown(f"""
+                st.markdown("""
                 ### Quick Setup Steps:
                 
-                1. **Generate API Key** from your Hub Dashboard:
-                   ```
-                   curl -X POST {self.config.connection.hub_dashboard_url}/api/keys/generate-all
-                   ```
-                
+                1. **Generate API Key** from your Hub Dashboard
                 2. **Copy the generated API key** and paste it above
-                
                 3. **Set your App ID** (recommended: `multi-model-chat`)
-                
                 4. **Test the connection** using the button above
                 
                 ### Required Headers:
                 Your Hub Dashboard expects these headers:
-                ```
-                X-API-Key: your-generated-api-key
-                Content-Type: application/json
-                ```
+                - X-API-Key: your-generated-api-key
+                - Content-Type: application/json
                 
                 ### Available Endpoints:
-                - **Main API**: `{self.config.connection.hub_dashboard_url}`
-                - **Events**: `{self.config.connection.hub_events_endpoint}`
-                - **Connection Test**: `{self.config.connection.hub_connection_test_endpoint}`
+                - **Main API**: Your Hub Dashboard URL
+                - **Events**: /api/events/publish
+                - **Connection Test**: /api/test-connection
                 """)
     
     def _render_template_config(self):
