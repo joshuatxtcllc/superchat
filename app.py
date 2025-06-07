@@ -226,7 +226,19 @@ if st.session_state.get('show_config_manager', False):
     st.stop()
 
 # Main interface with branded header
-st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
+# Temporary placeholder image at top left
+col_logo, col_header = st.columns([1, 5])
+with col_logo:
+    st.markdown("""
+    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #2D87D3, #36a9e1); 
+                border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+                margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(45,135,211,0.3);">
+        <span style="font-size: 32px; color: white;">🏢</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col_header:
+    st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
 
 # Feature badges - hide behind a toggle button
 if 'show_feature_badges' not in st.session_state:
