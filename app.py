@@ -248,100 +248,54 @@ if st.session_state.show_feature_badges:
     if feature_badges:
         st.info(" • ".join(feature_badges))
 
-# Configuration interface
+# Quick Settings interface - simplified for common changes
 if 'show_config' in st.session_state and st.session_state.show_config:
-    st.markdown("## ⚙️ Branding & Configuration Settings")
+    st.markdown("## 🎨 Quick Settings")
+    st.markdown("*For advanced configuration options, use the Configuration Manager*")
 
-    # Add custom CSS for form styling
-    st.markdown("""
-    <style>
-    .config-section {
-        border: 1px solid #e0e0e0;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        background-color: rgba(255,255,255,0.8);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .config-header {
-        color: #2D87D3;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 0.5rem;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    with st.form("config_form"):
+    with st.form("quick_config_form"):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown('<div class="config-section">', unsafe_allow_html=True)
-            st.markdown('<h3 class="config-header">Company Information</h3>', unsafe_allow_html=True)
-            company_name = st.text_input("Company Name", value=wl_config.branding.company_name)
-            company_website = st.text_input("Company Website", value=wl_config.branding.company_website)
-            company_email = st.text_input("Support Email", value=wl_config.branding.company_support_email)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            st.markdown('<div class="config-section">', unsafe_allow_html=True)
-            st.markdown('<h3 class="config-header">App Branding</h3>', unsafe_allow_html=True)
+            st.subheader("🏢 Basic Branding")
             app_title = st.text_input("App Title", value=wl_config.branding.app_title)
-            app_description = st.text_area("App Description", value=wl_config.branding.app_description)
             app_icon = st.text_input("App Icon (emoji)", value=wl_config.branding.app_icon)
-            app_tagline = st.text_input("App Tagline", value=wl_config.branding.app_tagline)
-            st.markdown('</div>', unsafe_allow_html=True)
+            company_name = st.text_input("Company Name", value=wl_config.branding.company_name)
 
         with col2:
-            st.markdown('<div class="config-section">', unsafe_allow_html=True)
-            st.markdown('<h3 class="config-header">Colors & Styling</h3>', unsafe_allow_html=True)
+            st.subheader("🎨 Quick Colors")
             primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
             secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            st.markdown('<div class="config-section">', unsafe_allow_html=True)
-            st.markdown('<h3 class="config-header">Footer Settings</h3>', unsafe_allow_html=True)
-            show_powered_by = st.checkbox("Show 'Powered by MCP'", value=wl_config.branding.show_powered_by)
-            custom_footer = st.text_area("Custom Footer Text", value=wl_config.branding.custom_footer_text)
-            copyright_text = st.text_input("Copyright Text", value=wl_config.branding.copyright_text)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-            st.markdown('<div class="config-section">', unsafe_allow_html=True)
-            st.markdown('<h3 class="config-header">Features</h3>', unsafe_allow_html=True)
+            
+            st.subheader("⚡ Quick Features")
             enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
-            enable_file_upload = st.checkbox("Enable File Upload", value=wl_config.features.enable_file_upload)
-            enable_model_comparison = st.checkbox("Enable Model Comparison", value=wl_config.features.enable_model_comparison)
-            st.markdown('</div>', unsafe_allow_html=True)
 
-        col_save, col_cancel = st.columns(2)
+        col_save, col_cancel, col_advanced = st.columns(3)
 
         with col_save:
-            save_config = st.form_submit_button("💾 Save Configuration", type="primary", use_container_width=True)
+            save_config = st.form_submit_button("💾 Save", type="primary", use_container_width=True)
 
         with col_cancel:
             cancel_config = st.form_submit_button("❌ Cancel", use_container_width=True)
 
+        with col_advanced:
+            if st.form_submit_button("🔧 Advanced Settings", use_container_width=True):
+                st.session_state.show_config = False
+                st.session_state.show_config_manager = True
+                st.rerun()
+
         if save_config:
             # Update configuration
-            wl_config.branding.company_name = company_name
-            wl_config.branding.company_website = company_website
-            wl_config.branding.company_support_email = company_email
             wl_config.branding.app_title = app_title
-            wl_config.branding.app_description = app_description
             wl_config.branding.app_icon = app_icon
-            wl_config.branding.app_tagline = app_tagline
+            wl_config.branding.company_name = company_name
             wl_config.branding.primary_color = primary_color
             wl_config.branding.secondary_color = secondary_color
-            wl_config.branding.show_powered_by = show_powered_by
-            wl_config.branding.custom_footer_text = custom_footer
-            wl_config.branding.copyright_text = copyright_text
             wl_config.features.enable_image_generation = enable_image_gen
-            wl_config.features.enable_file_upload = enable_file_upload
-            wl_config.features.enable_model_comparison = enable_model_comparison
 
             # Save to file
             if wl_config.save_config():
-                st.success("✅ Configuration saved successfully! Refreshing page...")
+                st.success("✅ Quick settings saved! Refreshing page...")
                 st.session_state.show_config = False
                 time.sleep(1)
                 st.rerun()
@@ -352,6 +306,7 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             st.session_state.show_config = False
             st.rerun()
 
+    st.info("💡 **Tip**: Use the Configuration Manager for templates, deployment settings, hub integration, and more advanced options!")
     st.divider()
 
 # Model recommender section
