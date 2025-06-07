@@ -110,6 +110,12 @@ class ConfigurationManager:
                 "Company Website", 
                 value=self.config.branding.company_website
             )
+            
+            self.config.branding.company_logo_url = st.text_input(
+                "Company Logo URL", 
+                value=self.config.branding.company_logo_url,
+                help="Enter the URL of your company logo image (e.g., https://example.com/logo.png)"
+            )
         
         # Preview
         st.subheader("Preview")
