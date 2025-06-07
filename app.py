@@ -204,7 +204,7 @@ with st.sidebar:
     """)
 
 # Configuration Manager interface
-if 'show_config_manager' in st.session_state and st.session_state.show_config_manager:
+if st.session_state.get('show_config_manager', False):
     # Back button
     if st.button("← Back to Chat"):
         st.session_state.show_config_manager = False
@@ -279,10 +279,12 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             cancel_config = st.form_submit_button("❌ Cancel", use_container_width=True)
 
         with col_advanced:
-            if st.form_submit_button("🔧 Advanced Settings", use_container_width=True):
-                st.session_state.show_config = False
-                st.session_state.show_config_manager = True
-                st.rerun()
+            advanced_clicked = st.form_submit_button("🔧 Advanced Settings", use_container_width=True)
+
+        if advanced_clicked:
+            st.session_state.show_config = False
+            st.session_state.show_config_manager = True
+            st.rerun()
 
         if save_config:
             # Update configuration
