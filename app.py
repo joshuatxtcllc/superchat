@@ -448,6 +448,21 @@ if wl_config.features.enable_image_generation:
                 key="image_prompt_input"
             )
 
+            # Image URL input for reference or editing
+            image_url = st.text_input(
+                "Reference Image URL (Optional)",
+                placeholder="https://example.com/image.jpg",
+                help="Add a reference image URL for style transfer, editing, or variations",
+                key="reference_image_url"
+            )
+
+            # Show preview of reference image if URL is provided
+            if image_url.strip():
+                try:
+                    st.image(image_url, caption="Reference Image", width=200)
+                except:
+                    st.warning("⚠️ Cannot display image. Please check the URL is valid and accessible.")
+
             # AI Prompt Improver
             if st.button("🤖 Improve Prompt with AI", help="Let AI enhance your prompt for better results", use_container_width=True):
                 if image_prompt.strip():
@@ -523,6 +538,8 @@ if wl_config.features.enable_image_generation:
             if st.button("🎨 Generate Image", type="primary", use_container_width=True):
                 # Use improved prompt if available and user clicked "Use Improved", otherwise use the original
                 current_prompt = st.session_state.get('prompt_to_use', image_prompt)
+                current_image_url = image_url.strip() if 'image_url' in locals() else None
+                
                 if current_prompt.strip():
                     with st.spinner("Generating image... This may take a moment..."):
                         result = image_generator.generate_image(
@@ -530,7 +547,8 @@ if wl_config.features.enable_image_generation:
                             model=image_generator.available_models[image_model],
                             size=image_size,
                             quality=image_quality,
-                            style=image_style
+                            style=image_style,
+                            reference_image_url=current_image_url
                         )
 
                         if result.get("success"):
@@ -542,16 +560,21 @@ if wl_config.features.enable_image_generation:
                             prompt_info = f"Prompt: '{current_prompt}'"
                             if current_prompt != image_prompt:
                                 prompt_info = f"Original prompt: '{image_prompt}'\nImproved prompt: '{current_prompt}'"
+                            
+                            reference_info = ""
+                            if current_image_url:
+                                reference_info = f"\nReference image: {current_image_url}"
 
                             st.session_state.messages.append({
                                 "role": "assistant",
-                                "content": f"I've generated an image based on your prompt.\n\n{prompt_info}\n\n[Image URL: {result['image_url']}]",
+                                "content": f"I've generated an image based on your prompt.\n\n{prompt_info}{reference_info}\n\n[Image URL: {result['image_url']}]",
                                 "timestamp": timestamp,
                                 "model": f"Image Generator ({image_model})",
                                 "model_id": result["model"],
                                 "image_url": result["image_url"],
                                 "image_prompt": current_prompt,
-                                "original_prompt": image_prompt if current_prompt != image_prompt else None
+                                "original_prompt": image_prompt if current_prompt != image_prompt else None,
+                                "reference_image_url": current_image_url
                             })
 
                             # Save conversation history
