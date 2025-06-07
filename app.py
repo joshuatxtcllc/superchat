@@ -226,15 +226,65 @@ if st.session_state.get('show_config_manager', False):
     st.stop()
 
 # Main interface with branded header
-# Temporary placeholder image at top left
+# Jay's Frames custom animated logo
 col_logo, col_header = st.columns([1, 5])
 with col_logo:
     st.markdown("""
-    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #2D87D3, #36a9e1); 
-                border-radius: 12px; display: flex; align-items: center; justify-content: center; 
-                margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(45,135,211,0.3);">
-        <span style="font-size: 32px; color: white;">🏢</span>
+    <div style="position: relative; width: 80px; height: 80px; margin-bottom: 1rem;">
+        <!-- Outer frame with gradient -->
+        <div style="
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #1a365d, #206ac7, #36a9e1);
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(26,54,93,0.4);
+            animation: frameGlow 3s ease-in-out infinite alternate;
+        "></div>
+        
+        <!-- Inner artistic frame -->
+        <div style="
+            position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px;
+            background: linear-gradient(45deg, #f8f9fa, #ffffff);
+            border: 2px solid rgba(26,54,93,0.2);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-family: serif; font-weight: bold; font-size: 14px; color: #1a365d;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        ">J</div>
+        
+        <!-- Corner decorative elements -->
+        <div style="
+            position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+            background: #206ac7; border-radius: 50%; opacity: 0.7;
+            animation: cornerPulse 2s ease-in-out infinite;
+        "></div>
+        <div style="
+            position: absolute; top: 2px; right: 2px; width: 8px; height: 8px;
+            background: #36a9e1; border-radius: 50%; opacity: 0.5;
+            animation: cornerPulse 2s ease-in-out infinite 0.5s;
+        "></div>
+        <div style="
+            position: absolute; bottom: 2px; left: 2px; width: 8px; height: 8px;
+            background: #36a9e1; border-radius: 50%; opacity: 0.5;
+            animation: cornerPulse 2s ease-in-out infinite 1s;
+        "></div>
+        <div style="
+            position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px;
+            background: #206ac7; border-radius: 50%; opacity: 0.6;
+            animation: cornerPulse 2s ease-in-out infinite 1.5s;
+        "></div>
     </div>
+    
+    <style>
+        @keyframes frameGlow {
+            0% { box-shadow: 0 4px 20px rgba(26,54,93,0.4); }
+            100% { box-shadow: 0 6px 30px rgba(32,106,199,0.6), 0 0 20px rgba(54,169,225,0.3); }
+        }
+        
+        @keyframes cornerPulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.2); }
+        }
+    </style>
     """, unsafe_allow_html=True)
 
 with col_header:
