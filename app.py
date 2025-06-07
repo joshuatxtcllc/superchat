@@ -179,13 +179,13 @@ with st.sidebar:
 
     st.divider()
     st.markdown("### ⚙️ Configuration")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         if st.button("🎨 Quick Settings", use_container_width=True):
             st.session_state.show_config = True
             st.rerun()
-    
+
     with col2:
         if st.button("🔧 Configuration Manager", use_container_width=True):
             st.session_state.show_config_manager = True
@@ -209,9 +209,9 @@ if 'show_config_manager' in st.session_state and st.session_state.show_config_ma
     if st.button("← Back to Chat"):
         st.session_state.show_config_manager = False
         st.rerun()
-    
+
     st.divider()
-    
+
     # Import and render configuration manager
     try:
         from configuration_manager import render_configuration_manager
@@ -222,7 +222,7 @@ if 'show_config_manager' in st.session_state and st.session_state.show_config_ma
         st.session_state.show_config_manager = False
         st.session_state.show_config = True
         st.rerun()
-    
+
     st.stop()
 
 # Main interface with branded header
@@ -251,7 +251,7 @@ if st.session_state.show_feature_badges:
 # Configuration interface
 if 'show_config' in st.session_state and st.session_state.show_config:
     st.markdown("## ⚙️ Branding & Configuration Settings")
-    
+
     # Add custom CSS for form styling
     st.markdown("""
     <style>
@@ -272,10 +272,10 @@ if 'show_config' in st.session_state and st.session_state.show_config:
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
     with st.form("config_form"):
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown('<div class="config-section">', unsafe_allow_html=True)
             st.markdown('<h3 class="config-header">Company Information</h3>', unsafe_allow_html=True)
@@ -283,7 +283,7 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             company_website = st.text_input("Company Website", value=wl_config.branding.company_website)
             company_email = st.text_input("Support Email", value=wl_config.branding.company_support_email)
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.markdown('<div class="config-section">', unsafe_allow_html=True)
             st.markdown('<h3 class="config-header">App Branding</h3>', unsafe_allow_html=True)
             app_title = st.text_input("App Title", value=wl_config.branding.app_title)
@@ -291,36 +291,36 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             app_icon = st.text_input("App Icon (emoji)", value=wl_config.branding.app_icon)
             app_tagline = st.text_input("App Tagline", value=wl_config.branding.app_tagline)
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
         with col2:
             st.markdown('<div class="config-section">', unsafe_allow_html=True)
             st.markdown('<h3 class="config-header">Colors & Styling</h3>', unsafe_allow_html=True)
             primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
             secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.markdown('<div class="config-section">', unsafe_allow_html=True)
             st.markdown('<h3 class="config-header">Footer Settings</h3>', unsafe_allow_html=True)
             show_powered_by = st.checkbox("Show 'Powered by MCP'", value=wl_config.branding.show_powered_by)
             custom_footer = st.text_area("Custom Footer Text", value=wl_config.branding.custom_footer_text)
             copyright_text = st.text_input("Copyright Text", value=wl_config.branding.copyright_text)
             st.markdown('</div>', unsafe_allow_html=True)
-            
+
             st.markdown('<div class="config-section">', unsafe_allow_html=True)
             st.markdown('<h3 class="config-header">Features</h3>', unsafe_allow_html=True)
             enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
             enable_file_upload = st.checkbox("Enable File Upload", value=wl_config.features.enable_file_upload)
             enable_model_comparison = st.checkbox("Enable Model Comparison", value=wl_config.features.enable_model_comparison)
             st.markdown('</div>', unsafe_allow_html=True)
-        
+
         col_save, col_cancel = st.columns(2)
-        
+
         with col_save:
             save_config = st.form_submit_button("💾 Save Configuration", type="primary", use_container_width=True)
-        
+
         with col_cancel:
             cancel_config = st.form_submit_button("❌ Cancel", use_container_width=True)
-        
+
         if save_config:
             # Update configuration
             wl_config.branding.company_name = company_name
@@ -338,7 +338,7 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             wl_config.features.enable_image_generation = enable_image_gen
             wl_config.features.enable_file_upload = enable_file_upload
             wl_config.features.enable_model_comparison = enable_model_comparison
-            
+
             # Save to file
             if wl_config.save_config():
                 st.success("✅ Configuration saved successfully! Refreshing page...")
@@ -347,11 +347,11 @@ if 'show_config' in st.session_state and st.session_state.show_config:
                 st.rerun()
             else:
                 st.error("❌ Failed to save configuration")
-        
+
         if cancel_config:
             st.session_state.show_config = False
             st.rerun()
-    
+
     st.divider()
 
 # Model recommender section
@@ -475,15 +475,15 @@ for idx, message in enumerate(st.session_state.messages):
 if wl_config.features.enable_image_generation:
     if 'show_image_generation' not in st.session_state:
         st.session_state.show_image_generation = False
-    
+
     if st.button("🎨 AI Image Generation", help="Generate images with AI"):
         st.session_state.show_image_generation = not st.session_state.show_image_generation
-    
+
     if st.session_state.show_image_generation:
         st.subheader("Generate Images with AI")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             image_prompt = st.text_area(
                 "Image Description",
@@ -492,7 +492,7 @@ if wl_config.features.enable_image_generation:
                 help="Example: A futuristic cityscape at sunset with flying cars and neon lights",
                 key="image_prompt_input"
             )
-            
+
             # AI Prompt Improver
             col_improve, col_show_improved = st.columns([2, 1])
             with col_improve:
@@ -500,7 +500,7 @@ if wl_config.features.enable_image_generation:
                     if image_prompt.strip():
                         with st.spinner("Improving your prompt..."):
                             improvement_result = image_generator.improve_prompt(image_prompt)
-                            
+
                             if improvement_result.get("success"):
                                 st.session_state.improved_prompt = improvement_result["improved_prompt"]
                                 st.session_state.original_prompt = improvement_result["original_prompt"]
@@ -509,39 +509,38 @@ if wl_config.features.enable_image_generation:
                                 st.error(f"Error improving prompt: {improvement_result.get('error', 'Unknown error')}")
                     else:
                         st.warning("Please enter a prompt first")
-            
+
             with col_show_improved:
                 if 'improved_prompt' in st.session_state:
                     if st.button("📝 Show Improved", help="View the AI-improved prompt"):
                         st.session_state.show_improved_prompt = not st.session_state.get('show_improved_prompt', False)
-            
-            # Show improved prompt if available and toggled
-            if 'improved_prompt' in st.session_state and st.session_state.get('show_improved_prompt', False):
-                st.markdown("**🤖 AI-Improved Prompt:**")
+
+            # Show improved prompt if available (moved outside the expander to avoid nesting)
+            if 'improved_prompt' in st.session_state:
+                st.markdown("---")
+                st.subheader("🤖 AI-Improved Prompt")
                 st.markdown("**Original:**")
                 st.text(st.session_state.original_prompt)
                 st.markdown("**Improved:**")
-                improved_text = st.text_area("Improved prompt:", value=st.session_state.improved_prompt, height=80, key="improved_display")
-                
-                col_copy, col_use, col_clear = st.columns(3)
+                st.text_area("", value=st.session_state.improved_prompt, height=80, key="improved_display", disabled=False)
+
+                col_copy, col_clear = st.columns(2)
                 with col_copy:
-                    if st.button("📋 Copy"):
+                    if st.button("📋 Copy Improved Prompt"):
                         st.code(st.session_state.improved_prompt)
-                        st.success("Prompt shown above - select and copy!")
-                
-                with col_use:
-                    if st.button("✅ Use This"):
-                        # Instead of modifying session state directly, store the improved prompt
-                        st.session_state.use_improved_prompt = True
-                        st.success("Using improved prompt!")
-                
+                        st.success("Improved prompt displayed above - select and copy!")
+
                 with col_clear:
                     if st.button("🗑️ Clear"):
-                        for key in ['improved_prompt', 'original_prompt', 'show_improved_prompt', 'use_improved_prompt']:
-                            if key in st.session_state:
-                                del st.session_state[key]
+                        if 'improved_prompt' in st.session_state:
+                            del st.session_state.improved_prompt
+                        if 'original_prompt' in st.session_state:
+                            del st.session_state.original_prompt
+                        if 'prompt_to_use' in st.session_state:
+                            del st.session_state.prompt_to_use
                         st.rerun()
-            
+                st.markdown("---")
+
             image_model = st.selectbox(
                 "Image Generation Model",
                 options=list(image_generator.available_models.keys()),
@@ -559,12 +558,8 @@ if wl_config.features.enable_image_generation:
 
         with col2:
             if st.button("🎨 Generate Image", type="primary", use_container_width=True):
-                # Use improved prompt if user selected it, otherwise use the original
-                if st.session_state.get('use_improved_prompt') and 'improved_prompt' in st.session_state:
-                    current_prompt = st.session_state.improved_prompt
-                else:
-                    current_prompt = image_prompt
-                    
+                # Use improved prompt if user clicked "Use Improved", otherwise use the original
+                current_prompt = st.session_state.get('prompt_to_use', image_prompt)
                 if current_prompt.strip():
                     with st.spinner("Generating image... This may take a moment..."):
                         result = image_generator.generate_image(
@@ -584,7 +579,7 @@ if wl_config.features.enable_image_generation:
                             prompt_info = f"Prompt: '{current_prompt}'"
                             if current_prompt != image_prompt:
                                 prompt_info = f"Original prompt: '{image_prompt}'\nImproved prompt: '{current_prompt}'"
-                            
+
                             st.session_state.messages.append({
                                 "role": "assistant",
                                 "content": f"I've generated an image based on your prompt.\n\n{prompt_info}\n\n[Image URL: {result['image_url']}]",
@@ -730,6 +725,7 @@ with st.container():
         current_time = time.time()
         if current_time - st.session_state.last_message_time < 2:
             st.error("Please wait before sending another message.")
+            ```python
             st.stop()
 
         st.session_state.message_count += 1
