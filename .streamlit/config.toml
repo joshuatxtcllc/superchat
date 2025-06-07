@@ -6,23 +6,16 @@ headless = true
 enableCORS = false
 enableXsrfProtection = false
 enableWebsocketCompression = false
+allowRunOnSave = false
 
 [browser]
 gatherUsageStats = false
-showErrorDetails = true
 
 [client]
 toolbarMode = "minimal"
-showErrorDetails = true
 
 [runner]
 magicEnabled = true
-installTracer = false
-fixMatplotlib = true
-
-[logger]
-level = "info"
-enableLogging = true
 
 [theme]
 primaryColor = "#2D87D3"
