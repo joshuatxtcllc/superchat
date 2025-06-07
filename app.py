@@ -494,8 +494,53 @@ if wl_config.features.enable_image_generation:
             "Image Description",
             height=100,
             placeholder="Describe the image you want to generate... Be as detailed as possible!",
-            help="Example: A futuristic cityscape at sunset with flying cars and neon lights"
+            help="Example: A futuristic cityscape at sunset with flying cars and neon lights",
+            key="image_prompt_input"
         )
+        
+        # AI Prompt Improver
+        col_improve, col_use = st.columns([2, 1])
+        with col_improve:
+            if st.button("🤖 Improve Prompt with AI", help="Let AI enhance your prompt for better results"):
+                if image_prompt.strip():
+                    with st.spinner("Improving your prompt..."):
+                        improvement_result = image_generator.improve_prompt(image_prompt)
+                        
+                        if improvement_result.get("success"):
+                            st.session_state.improved_prompt = improvement_result["improved_prompt"]
+                            st.session_state.original_prompt = improvement_result["original_prompt"]
+                            st.success("✨ Prompt improved!")
+                        else:
+                            st.error(f"Error improving prompt: {improvement_result.get('error', 'Unknown error')}")
+                else:
+                    st.warning("Please enter a prompt first")
+        
+        with col_use:
+            if 'improved_prompt' in st.session_state and st.button("📝 Use Improved", help="Use the AI-improved prompt"):
+                st.session_state.image_prompt_input = st.session_state.improved_prompt
+                st.rerun()
+        
+        # Show improved prompt if available
+        if 'improved_prompt' in st.session_state:
+            with st.expander("🤖 AI-Improved Prompt", expanded=True):
+                st.markdown("**Original:**")
+                st.text(st.session_state.original_prompt)
+                st.markdown("**Improved:**")
+                st.text_area("", value=st.session_state.improved_prompt, height=80, key="improved_display", disabled=False)
+                
+                col_copy, col_clear = st.columns(2)
+                with col_copy:
+                    if st.button("📋 Copy Improved Prompt"):
+                        st.code(st.session_state.improved_prompt)
+                        st.success("Improved prompt displayed above - select and copy!")
+                
+                with col_clear:
+                    if st.button("🗑️ Clear"):
+                        if 'improved_prompt' in st.session_state:
+                            del st.session_state.improved_prompt
+                        if 'original_prompt' in st.session_state:
+                            del st.session_state.original_prompt
+                        st.rerun()
 
         image_model = st.selectbox(
             "Image Generation Model",
@@ -514,10 +559,12 @@ if wl_config.features.enable_image_generation:
 
     with col2:
         if st.button("🎨 Generate Image", type="primary", use_container_width=True):
-            if image_prompt.strip():
+            # Use improved prompt if available, otherwise use the original
+            current_prompt = st.session_state.get('improved_prompt', image_prompt)
+            if current_prompt.strip():
                 with st.spinner("Generating image... This may take a moment..."):
                     result = image_generator.generate_image(
-                        prompt=image_prompt,
+                        prompt=current_prompt,
                         model=image_generator.available_models[image_model],
                         size=image_size,
                         quality=image_quality,
@@ -526,18 +573,23 @@ if wl_config.features.enable_image_generation:
 
                     if result.get("success"):
                         st.success("Image generated successfully!")
-                        st.image(result["image_url"], caption=f"Generated: {image_prompt[:100]}...")
+                        st.image(result["image_url"], caption=f"Generated: {current_prompt[:100]}...")
 
                         # Add generated image info to conversation
                         timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+                        prompt_info = f"Original prompt: '{image_prompt}'" if current_prompt != image_prompt else f"Prompt: '{current_prompt}'"
+                        if current_prompt != image_prompt:
+                            prompt_info += f"\nImproved prompt: '{current_prompt}'"
+                        
                         st.session_state.messages.append({
                             "role": "assistant",
-                            "content": f"I've generated an image based on your prompt: '{image_prompt}'\n\n[Image URL: {result['image_url']}]",
+                            "content": f"I've generated an image based on your prompt.\n\n{prompt_info}\n\n[Image URL: {result['image_url']}]",
                             "timestamp": timestamp,
                             "model": f"Image Generator ({image_model})",
                             "model_id": result["model"],
                             "image_url": result["image_url"],
-                            "image_prompt": image_prompt
+                            "image_prompt": current_prompt,
+                            "original_prompt": image_prompt if current_prompt != image_prompt else None
                         })
 
                         # Save conversation history
