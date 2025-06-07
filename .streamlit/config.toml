@@ -5,8 +5,6 @@ address = "0.0.0.0"
 headless = true
 enableCORS = false
 enableXsrfProtection = false
-enableWebsocketCompression = false
-allowRunOnSave = false
 
 [browser]
 gatherUsageStats = false
@@ -19,6 +17,6 @@ magicEnabled = true
 
 [theme]
 primaryColor = "#2D87D3"
-backgroundColor = "#ffffff"
+backgroundColor = "#ffffff" 
 secondaryBackgroundColor = "#f8f9fa"
 textColor = "#000000"
