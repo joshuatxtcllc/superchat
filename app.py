@@ -228,36 +228,25 @@ if 'show_config_manager' in st.session_state and st.session_state.show_config_ma
 # Main interface with branded header
 st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
 
-# Feature badges (conditional based on white-label config)
-feature_badges = []
-if wl_config.features.enable_model_recommender:
-    feature_badges.append("""
-        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: var(--primary-color); font-weight: 500;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
-            AI-powered recommender
-        </div>
-    """)
+# Feature badges - hide behind a toggle button
+if 'show_feature_badges' not in st.session_state:
+    st.session_state.show_feature_badges = False
 
-if wl_config.features.enable_model_comparison:
-    feature_badges.append("""
-        <div style="background-color: rgba(45,135,211,0.1); border-radius: 1rem; padding: 0.6rem 1.2rem; display: flex; align-items: center; font-size: 0.9rem; color: var(--primary-color); font-weight: 500;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
-                <path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path>
-                <path d="M9 12h6"></path>
-                <path d="M12 9v6"></path>
-            </svg>
-            Multi-model comparison
-        </div>
-    """)
+col_title, col_features = st.columns([4, 1])
+with col_features:
+    if st.button("ℹ️ Features", help="Show available features"):
+        st.session_state.show_feature_badges = not st.session_state.show_feature_badges
 
-if feature_badges:
-    st.markdown(f"""
-    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-        {''.join(feature_badges)}
-    </div>
-    """, unsafe_allow_html=True)
+if st.session_state.show_feature_badges:
+    feature_badges = []
+    if wl_config.features.enable_model_recommender:
+        feature_badges.append("🤖 AI-powered recommender")
+
+    if wl_config.features.enable_model_comparison:
+        feature_badges.append("⚖️ Multi-model comparison")
+
+    if feature_badges:
+        st.info(" • ".join(feature_badges))
 
 # Configuration interface
 if 'show_config' in st.session_state and st.session_state.show_config:
@@ -482,131 +471,146 @@ for idx, message in enumerate(st.session_state.messages):
                 with st.expander("MCP Context Information", expanded=False):
                     st.json(message["mcp_context"])
 
-# Image generation section (if enabled)
+# Image generation section (if enabled) - hidden behind button
 if wl_config.features.enable_image_generation:
-    with st.expander("🎨 AI Image Generation", expanded=False):
+    if 'show_image_generation' not in st.session_state:
+        st.session_state.show_image_generation = False
+    
+    if st.button("🎨 AI Image Generation", help="Generate images with AI"):
+        st.session_state.show_image_generation = not st.session_state.show_image_generation
+    
+    if st.session_state.show_image_generation:
         st.subheader("Generate Images with AI")
-
+        
         col1, col2 = st.columns(2)
-
-    with col1:
-        image_prompt = st.text_area(
-            "Image Description",
-            height=100,
-            placeholder="Describe the image you want to generate... Be as detailed as possible!",
-            help="Example: A futuristic cityscape at sunset with flying cars and neon lights",
-            key="image_prompt_input"
-        )
         
-        # AI Prompt Improver
-        col_improve, col_use = st.columns([2, 1])
-        with col_improve:
-            if st.button("🤖 Improve Prompt with AI", help="Let AI enhance your prompt for better results"):
-                if image_prompt.strip():
-                    with st.spinner("Improving your prompt..."):
-                        improvement_result = image_generator.improve_prompt(image_prompt)
-                        
-                        if improvement_result.get("success"):
-                            st.session_state.improved_prompt = improvement_result["improved_prompt"]
-                            st.session_state.original_prompt = improvement_result["original_prompt"]
-                            st.success("✨ Prompt improved!")
-                        else:
-                            st.error(f"Error improving prompt: {improvement_result.get('error', 'Unknown error')}")
-                else:
-                    st.warning("Please enter a prompt first")
-        
-        with col_use:
-            if 'improved_prompt' in st.session_state and st.button("📝 Use Improved", help="Use the AI-improved prompt"):
-                st.session_state.image_prompt_input = st.session_state.improved_prompt
-                st.rerun()
-        
-        # Show improved prompt if available
-        if 'improved_prompt' in st.session_state:
-            with st.expander("🤖 AI-Improved Prompt", expanded=True):
+        with col1:
+            image_prompt = st.text_area(
+                "Image Description",
+                height=100,
+                placeholder="Describe the image you want to generate... Be as detailed as possible!",
+                help="Example: A futuristic cityscape at sunset with flying cars and neon lights",
+                key="image_prompt_input"
+            )
+            
+            # AI Prompt Improver
+            col_improve, col_show_improved = st.columns([2, 1])
+            with col_improve:
+                if st.button("🤖 Improve Prompt with AI", help="Let AI enhance your prompt for better results"):
+                    if image_prompt.strip():
+                        with st.spinner("Improving your prompt..."):
+                            improvement_result = image_generator.improve_prompt(image_prompt)
+                            
+                            if improvement_result.get("success"):
+                                st.session_state.improved_prompt = improvement_result["improved_prompt"]
+                                st.session_state.original_prompt = improvement_result["original_prompt"]
+                                st.success("✨ Prompt improved!")
+                            else:
+                                st.error(f"Error improving prompt: {improvement_result.get('error', 'Unknown error')}")
+                    else:
+                        st.warning("Please enter a prompt first")
+            
+            with col_show_improved:
+                if 'improved_prompt' in st.session_state:
+                    if st.button("📝 Show Improved", help="View the AI-improved prompt"):
+                        st.session_state.show_improved_prompt = not st.session_state.get('show_improved_prompt', False)
+            
+            # Show improved prompt if available and toggled
+            if 'improved_prompt' in st.session_state and st.session_state.get('show_improved_prompt', False):
+                st.markdown("**🤖 AI-Improved Prompt:**")
                 st.markdown("**Original:**")
                 st.text(st.session_state.original_prompt)
                 st.markdown("**Improved:**")
-                st.text_area("", value=st.session_state.improved_prompt, height=80, key="improved_display", disabled=False)
+                improved_text = st.text_area("Improved prompt:", value=st.session_state.improved_prompt, height=80, key="improved_display")
                 
-                col_copy, col_clear = st.columns(2)
+                col_copy, col_use, col_clear = st.columns(3)
                 with col_copy:
-                    if st.button("📋 Copy Improved Prompt"):
+                    if st.button("📋 Copy"):
                         st.code(st.session_state.improved_prompt)
-                        st.success("Improved prompt displayed above - select and copy!")
+                        st.success("Prompt shown above - select and copy!")
+                
+                with col_use:
+                    if st.button("✅ Use This"):
+                        # Instead of modifying session state directly, store the improved prompt
+                        st.session_state.use_improved_prompt = True
+                        st.success("Using improved prompt!")
                 
                 with col_clear:
                     if st.button("🗑️ Clear"):
-                        if 'improved_prompt' in st.session_state:
-                            del st.session_state.improved_prompt
-                        if 'original_prompt' in st.session_state:
-                            del st.session_state.original_prompt
+                        for key in ['improved_prompt', 'original_prompt', 'show_improved_prompt', 'use_improved_prompt']:
+                            if key in st.session_state:
+                                del st.session_state[key]
                         st.rerun()
+            
+            image_model = st.selectbox(
+                "Image Generation Model",
+                options=list(image_generator.available_models.keys()),
+                index=0
+            )
 
-        image_model = st.selectbox(
-            "Image Generation Model",
-            options=list(image_generator.available_models.keys()),
-            index=0
-        )
-
-        if image_model == "DALL-E 3":
-            image_size = st.selectbox("Image Size", ["1024x1024", "1792x1024", "1024x1792"])
-            image_quality = st.selectbox("Quality", ["standard", "hd"])
-            image_style = st.selectbox("Style", ["vivid", "natural"])
-        else:
-            image_size = st.selectbox("Image Size", ["1024x1024", "512x512", "256x256"])
-            image_quality = "standard"
-            image_style = "vivid"
-
-    with col2:
-        if st.button("🎨 Generate Image", type="primary", use_container_width=True):
-            # Use improved prompt if available, otherwise use the original
-            current_prompt = st.session_state.get('improved_prompt', image_prompt)
-            if current_prompt.strip():
-                with st.spinner("Generating image... This may take a moment..."):
-                    result = image_generator.generate_image(
-                        prompt=current_prompt,
-                        model=image_generator.available_models[image_model],
-                        size=image_size,
-                        quality=image_quality,
-                        style=image_style
-                    )
-
-                    if result.get("success"):
-                        st.success("Image generated successfully!")
-                        st.image(result["image_url"], caption=f"Generated: {current_prompt[:100]}...")
-
-                        # Add generated image info to conversation
-                        timestamp = datetime.now().strftime("%I:%M %p, %B %d")
-                        prompt_info = f"Original prompt: '{image_prompt}'" if current_prompt != image_prompt else f"Prompt: '{current_prompt}'"
-                        if current_prompt != image_prompt:
-                            prompt_info += f"\nImproved prompt: '{current_prompt}'"
-                        
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": f"I've generated an image based on your prompt.\n\n{prompt_info}\n\n[Image URL: {result['image_url']}]",
-                            "timestamp": timestamp,
-                            "model": f"Image Generator ({image_model})",
-                            "model_id": result["model"],
-                            "image_url": result["image_url"],
-                            "image_prompt": current_prompt,
-                            "original_prompt": image_prompt if current_prompt != image_prompt else None
-                        })
-
-                        # Save conversation history
-                        save_session_history(st.session_state.conversation_id, st.session_state.messages)
-
-                    else:
-                        st.error(f"Error generating image: {result.get('error', 'Unknown error')}")
+            if image_model == "DALL-E 3":
+                image_size = st.selectbox("Image Size", ["1024x1024", "1792x1024", "1024x1792"])
+                image_quality = st.selectbox("Quality", ["standard", "hd"])
+                image_style = st.selectbox("Style", ["vivid", "natural"])
             else:
-                st.warning("Please enter a description for the image you want to generate.")
+                image_size = st.selectbox("Image Size", ["1024x1024", "512x512", "256x256"])
+                image_quality = "standard"
+                image_style = "vivid"
 
-        st.markdown("""
-        **Tips for better images:**
-        - Be specific about style, colors, and mood
-        - Include details about lighting and composition
-        - Mention artistic styles if desired (e.g., "photorealistic", "watercolor", "digital art")
-        - Specify the subject and setting clearly
-        """)
+        with col2:
+            if st.button("🎨 Generate Image", type="primary", use_container_width=True):
+                # Use improved prompt if user selected it, otherwise use the original
+                if st.session_state.get('use_improved_prompt') and 'improved_prompt' in st.session_state:
+                    current_prompt = st.session_state.improved_prompt
+                else:
+                    current_prompt = image_prompt
+                    
+                if current_prompt.strip():
+                    with st.spinner("Generating image... This may take a moment..."):
+                        result = image_generator.generate_image(
+                            prompt=current_prompt,
+                            model=image_generator.available_models[image_model],
+                            size=image_size,
+                            quality=image_quality,
+                            style=image_style
+                        )
+
+                        if result.get("success"):
+                            st.success("Image generated successfully!")
+                            st.image(result["image_url"], caption=f"Generated: {current_prompt[:100]}...")
+
+                            # Add generated image info to conversation
+                            timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+                            prompt_info = f"Prompt: '{current_prompt}'"
+                            if current_prompt != image_prompt:
+                                prompt_info = f"Original prompt: '{image_prompt}'\nImproved prompt: '{current_prompt}'"
+                            
+                            st.session_state.messages.append({
+                                "role": "assistant",
+                                "content": f"I've generated an image based on your prompt.\n\n{prompt_info}\n\n[Image URL: {result['image_url']}]",
+                                "timestamp": timestamp,
+                                "model": f"Image Generator ({image_model})",
+                                "model_id": result["model"],
+                                "image_url": result["image_url"],
+                                "image_prompt": current_prompt,
+                                "original_prompt": image_prompt if current_prompt != image_prompt else None
+                            })
+
+                            # Save conversation history
+                            save_session_history(st.session_state.conversation_id, st.session_state.messages)
+
+                        else:
+                            st.error(f"Error generating image: {result.get('error', 'Unknown error')}")
+                else:
+                    st.warning("Please enter a description for the image you want to generate.")
+
+            st.markdown("""
+            **Tips for better images:**
+            - Be specific about style, colors, and mood
+            - Include details about lighting and composition
+            - Mention artistic styles if desired (e.g., "photorealistic", "watercolor", "digital art")
+            - Specify the subject and setting clearly
+            """)
 
 # File upload and screen sharing section (if enabled)
 if wl_config.features.enable_file_upload or wl_config.features.enable_screen_sharing:
@@ -814,5 +818,14 @@ with st.container():
         # The text area will be cleared automatically on rerun
         st.rerun()
 
-# Add branded footer
-st.markdown(wl_config.get_footer_html(), unsafe_allow_html=True)
+# Add branded footer - hidden behind toggle
+if 'show_footer' not in st.session_state:
+    st.session_state.show_footer = False
+
+col_spacer, col_footer = st.columns([5, 1])
+with col_footer:
+    if st.button("ℹ️ About", help="Show app information"):
+        st.session_state.show_footer = not st.session_state.show_footer
+
+if st.session_state.show_footer:
+    st.markdown(wl_config.get_footer_html(), unsafe_allow_html=True)
