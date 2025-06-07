@@ -725,7 +725,6 @@ with st.container():
         current_time = time.time()
         if current_time - st.session_state.last_message_time < 2:
             st.error("Please wait before sending another message.")
-            ```python
             st.stop()
 
         st.session_state.message_count += 1
