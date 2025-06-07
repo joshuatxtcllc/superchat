@@ -70,11 +70,29 @@ class ConfigurationManager:
         col1, col2 = st.columns(2)
         
         with col1:
+            st.subheader("Company Information")
             self.config.branding.company_name = st.text_input(
                 "Company Name", 
                 value=self.config.branding.company_name
             )
             
+            self.config.branding.company_website = st.text_input(
+                "Company Website", 
+                value=self.config.branding.company_website
+            )
+            
+            self.config.branding.company_support_email = st.text_input(
+                "Support Email", 
+                value=self.config.branding.company_support_email
+            )
+            
+            self.config.branding.company_logo_url = st.text_input(
+                "Company Logo URL", 
+                value=self.config.branding.company_logo_url,
+                help="Enter the URL of your company logo image (e.g., https://example.com/logo.png)"
+            )
+            
+            st.subheader("App Information")
             self.config.branding.app_title = st.text_input(
                 "App Title", 
                 value=self.config.branding.app_title
@@ -89,8 +107,14 @@ class ConfigurationManager:
                 "App Icon (emoji)", 
                 value=self.config.branding.app_icon
             )
+            
+            self.config.branding.app_tagline = st.text_input(
+                "App Tagline", 
+                value=self.config.branding.app_tagline
+            )
         
         with col2:
+            st.subheader("Colors & Styling")
             self.config.branding.primary_color = st.color_picker(
                 "Primary Color", 
                 value=self.config.branding.primary_color
@@ -101,14 +125,41 @@ class ConfigurationManager:
                 value=self.config.branding.secondary_color
             )
             
-            self.config.branding.company_logo_url = st.text_input(
-                "Company Logo URL", 
-                value=self.config.branding.company_logo_url
+            self.config.branding.background_color = st.color_picker(
+                "Background Color", 
+                value=self.config.branding.background_color
             )
             
-            self.config.branding.company_website = st.text_input(
-                "Company Website", 
-                value=self.config.branding.company_website
+            self.config.branding.accent_color = st.color_picker(
+                "Accent Color", 
+                value=self.config.branding.accent_color
+            )
+            
+            self.config.branding.text_color = st.color_picker(
+                "Text Color", 
+                value=self.config.branding.text_color
+            )
+            
+            st.subheader("Footer Settings")
+            self.config.branding.show_powered_by = st.checkbox(
+                "Show 'Powered by MCP'", 
+                value=self.config.branding.show_powered_by
+            )
+            
+            self.config.branding.custom_footer_text = st.text_area(
+                "Custom Footer Text", 
+                value=self.config.branding.custom_footer_text
+            )
+            
+            self.config.branding.copyright_text = st.text_input(
+                "Copyright Text", 
+                value=self.config.branding.copyright_text
+            )
+            
+            self.config.branding.custom_css = st.text_area(
+                "Custom CSS", 
+                value=self.config.branding.custom_css,
+                help="Add custom CSS to override default styling"
             )
         
         # Preview
