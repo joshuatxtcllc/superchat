@@ -494,52 +494,60 @@ if wl_config.features.enable_image_generation:
             )
 
             # AI Prompt Improver
-            col_improve, col_show_improved = st.columns([2, 1])
-            with col_improve:
-                if st.button("🤖 Improve Prompt with AI", help="Let AI enhance your prompt for better results"):
-                    if image_prompt.strip():
-                        with st.spinner("Improving your prompt..."):
-                            improvement_result = image_generator.improve_prompt(image_prompt)
+            if st.button("🤖 Improve Prompt with AI", help="Let AI enhance your prompt for better results", use_container_width=True):
+                if image_prompt.strip():
+                    with st.spinner("Improving your prompt..."):
+                        improvement_result = image_generator.improve_prompt(image_prompt)
 
-                            if improvement_result.get("success"):
-                                st.session_state.improved_prompt = improvement_result["improved_prompt"]
-                                st.session_state.original_prompt = improvement_result["original_prompt"]
-                                st.success("✨ Prompt improved!")
-                            else:
-                                st.error(f"Error improving prompt: {improvement_result.get('error', 'Unknown error')}")
-                    else:
-                        st.warning("Please enter a prompt first")
+                        if improvement_result.get("success"):
+                            st.session_state.improved_prompt = improvement_result["improved_prompt"]
+                            st.session_state.original_prompt = improvement_result["original_prompt"]
+                            st.success("✨ Prompt improved!")
+                            st.rerun()
+                        else:
+                            st.error(f"Error improving prompt: {improvement_result.get('error', 'Unknown error')}")
+                else:
+                    st.warning("Please enter a prompt first")
 
-            with col_show_improved:
-                if 'improved_prompt' in st.session_state:
-                    if st.button("📝 Show Improved", help="View the AI-improved prompt"):
-                        st.session_state.show_improved_prompt = not st.session_state.get('show_improved_prompt', False)
-
-            # Show improved prompt if available (moved outside the expander to avoid nesting)
-            if 'improved_prompt' in st.session_state:
-                st.markdown("---")
-                st.subheader("🤖 AI-Improved Prompt")
+        # Show improved prompt if available (outside columns for better display)
+        if 'improved_prompt' in st.session_state:
+            st.markdown("---")
+            st.subheader("🤖 AI-Improved Prompt")
+            
+            col_orig, col_improved = st.columns(2)
+            with col_orig:
                 st.markdown("**Original:**")
-                st.text(st.session_state.original_prompt)
+                st.text_area("Original prompt:", value=st.session_state.original_prompt, height=80, key="original_display", disabled=True)
+            
+            with col_improved:
                 st.markdown("**Improved:**")
-                st.text_area("", value=st.session_state.improved_prompt, height=80, key="improved_display", disabled=False)
+                improved_prompt_display = st.text_area("Improved prompt:", value=st.session_state.improved_prompt, height=80, key="improved_display")
 
-                col_copy, col_clear = st.columns(2)
-                with col_copy:
-                    if st.button("📋 Copy Improved Prompt"):
-                        st.code(st.session_state.improved_prompt)
-                        st.success("Improved prompt displayed above - select and copy!")
+            col_use, col_copy, col_clear = st.columns(3)
+            with col_use:
+                if st.button("✅ Use Improved Prompt", type="primary", use_container_width=True):
+                    st.session_state.prompt_to_use = st.session_state.improved_prompt
+                    st.success("Using improved prompt for generation!")
 
-                with col_clear:
-                    if st.button("🗑️ Clear"):
-                        if 'improved_prompt' in st.session_state:
-                            del st.session_state.improved_prompt
-                        if 'original_prompt' in st.session_state:
-                            del st.session_state.original_prompt
-                        if 'prompt_to_use' in st.session_state:
-                            del st.session_state.prompt_to_use
-                        st.rerun()
-                st.markdown("---")
+            with col_copy:
+                if st.button("📋 Copy to Clipboard", use_container_width=True):
+                    st.code(st.session_state.improved_prompt)
+                    st.success("Improved prompt displayed above - select and copy!")
+
+            with col_clear:
+                if st.button("🗑️ Clear", use_container_width=True):
+                    if 'improved_prompt' in st.session_state:
+                        del st.session_state.improved_prompt
+                    if 'original_prompt' in st.session_state:
+                        del st.session_state.original_prompt
+                    if 'prompt_to_use' in st.session_state:
+                        del st.session_state.prompt_to_use
+                    st.rerun()
+            st.markdown("---")
+
+        # Move back to the original column layout for generation settings
+        col1, col2 = st.columns(2)
+        with col1:
 
             image_model = st.selectbox(
                 "Image Generation Model",
@@ -558,7 +566,7 @@ if wl_config.features.enable_image_generation:
 
         with col2:
             if st.button("🎨 Generate Image", type="primary", use_container_width=True):
-                # Use improved prompt if user clicked "Use Improved", otherwise use the original
+                # Use improved prompt if available and user clicked "Use Improved", otherwise use the original
                 current_prompt = st.session_state.get('prompt_to_use', image_prompt)
                 if current_prompt.strip():
                     with st.spinner("Generating image... This may take a moment..."):
