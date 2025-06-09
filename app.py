@@ -226,69 +226,7 @@ if st.session_state.get('show_config_manager', False):
     st.stop()
 
 # Main interface with branded header
-# Jay's Frames custom animated logo
-col_logo, col_header = st.columns([1, 5])
-with col_logo:
-    st.markdown("""
-    <div style="position: relative; width: 80px; height: 80px; margin-bottom: 1rem;">
-        <!-- Outer frame with gradient -->
-        <div style="
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #1a365d, #206ac7, #36a9e1);
-            border-radius: 12px; 
-            box-shadow: 0 4px 20px rgba(26,54,93,0.4);
-            animation: frameGlow 3s ease-in-out infinite alternate;
-        "></div>
-        
-        <!-- Inner artistic frame -->
-        <div style="
-            position: absolute; top: 8px; left: 8px; right: 8px; bottom: 8px;
-            background: linear-gradient(45deg, #f8f9fa, #ffffff);
-            border: 2px solid rgba(26,54,93,0.2);
-            border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            font-family: serif; font-weight: bold; font-size: 14px; color: #1a365d;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        ">J</div>
-        
-        <!-- Corner decorative elements -->
-        <div style="
-            position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
-            background: #206ac7; border-radius: 50%; opacity: 0.7;
-            animation: cornerPulse 2s ease-in-out infinite;
-        "></div>
-        <div style="
-            position: absolute; top: 2px; right: 2px; width: 8px; height: 8px;
-            background: #36a9e1; border-radius: 50%; opacity: 0.5;
-            animation: cornerPulse 2s ease-in-out infinite 0.5s;
-        "></div>
-        <div style="
-            position: absolute; bottom: 2px; left: 2px; width: 8px; height: 8px;
-            background: #36a9e1; border-radius: 50%; opacity: 0.5;
-            animation: cornerPulse 2s ease-in-out infinite 1s;
-        "></div>
-        <div style="
-            position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px;
-            background: #206ac7; border-radius: 50%; opacity: 0.6;
-            animation: cornerPulse 2s ease-in-out infinite 1.5s;
-        "></div>
-    </div>
-    
-    <style>
-        @keyframes frameGlow {
-            0% { box-shadow: 0 4px 20px rgba(26,54,93,0.4); }
-            100% { box-shadow: 0 6px 30px rgba(32,106,199,0.6), 0 0 20px rgba(54,169,225,0.3); }
-        }
-        
-        @keyframes cornerPulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(1.2); }
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-with col_header:
-    st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
+st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
 
 # Feature badges - hide behind a toggle button
 if 'show_feature_badges' not in st.session_state:
@@ -310,160 +248,57 @@ if st.session_state.show_feature_badges:
     if feature_badges:
         st.info(" • ".join(feature_badges))
 
-# Quick Settings interface - comprehensive configuration options
+# Quick Settings interface - simplified for common changes
 if 'show_config' in st.session_state and st.session_state.show_config:
     st.markdown("## 🎨 Quick Settings")
-    st.markdown("*Configure your AI assistant's appearance and features*")
+    st.markdown("*For advanced configuration options, use the Configuration Manager*")
 
     with st.form("quick_config_form"):
-        # Create tabs for better organization
-        tab1, tab2, tab3, tab4 = st.tabs(["🏢 Branding", "⚡ Features", "🎨 Appearance", "🔧 Behavior"])
+        col1, col2 = st.columns(2)
 
-        with tab1:
-            st.subheader("Company & App Information")
-            col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("🏢 Basic Branding")
+            app_title = st.text_input("App Title", value=wl_config.branding.app_title)
+            app_icon = st.text_input("App Icon (emoji)", value=wl_config.branding.app_icon)
+            company_name = st.text_input("Company Name", value=wl_config.branding.company_name)
+
+        with col2:
+            st.subheader("🎨 Quick Colors")
+            primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
+            secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
             
-            with col1:
-                app_title = st.text_input("App Title", value=wl_config.branding.app_title)
-                company_name = st.text_input("Company Name", value=wl_config.branding.company_name)
-                app_tagline = st.text_input("App Tagline", value=getattr(wl_config.branding, 'app_tagline', 'Your AI Assistant'))
-                
-            with col2:
-                app_icon = st.text_input("App Icon (emoji)", value=wl_config.branding.app_icon)
-                app_description = st.text_area("App Description", value=getattr(wl_config.branding, 'app_description', 'AI-powered assistance platform'), height=60)
-                
-            st.subheader("Contact & Links")
-            col1, col2 = st.columns(2)
-            with col1:
-                company_website = st.text_input("Company Website", value=getattr(wl_config.branding, 'company_website', ''))
-                company_support_email = st.text_input("Support Email", value=getattr(wl_config.branding, 'company_support_email', ''))
-            with col2:
-                company_logo_url = st.text_input("Company Logo URL", value=getattr(wl_config.branding, 'company_logo_url', ''))
-                show_powered_by = st.checkbox("Show 'Powered by' attribution", value=getattr(wl_config.branding, 'show_powered_by', True))
+            st.subheader("⚡ Quick Features")
+            enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
 
-        with tab2:
-            st.subheader("AI Features")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
-                enable_model_comparison = st.checkbox("Enable Model Comparison", value=getattr(wl_config.features, 'enable_model_comparison', True))
-                enable_deep_thinking = st.checkbox("Enable Deep Thinking Mode", value=getattr(wl_config.features, 'enable_deep_thinking', True))
-                enable_conversation_starters = st.checkbox("Enable Conversation Starters", value=getattr(wl_config.features, 'enable_conversation_starters', True))
-                
-            with col2:
-                enable_file_upload = st.checkbox("Enable File Upload", value=getattr(wl_config.features, 'enable_file_upload', True))
-                enable_model_recommender = st.checkbox("Enable Model Recommender", value=getattr(wl_config.features, 'enable_model_recommender', True))
-                enable_export_conversation = st.checkbox("Enable Export Conversation", value=getattr(wl_config.features, 'enable_export_conversation', True))
-                enable_screen_sharing = st.checkbox("Enable Screen Sharing Instructions", value=getattr(wl_config.features, 'enable_screen_sharing', True))
-                
-            st.subheader("Usage Limits")
-            col1, col2 = st.columns(2)
-            with col1:
-                max_messages = st.number_input("Max Messages per Session", min_value=10, max_value=500, value=getattr(wl_config.features, 'max_messages_per_session', 20))
-            with col2:
-                min_time_between = st.number_input("Min Time Between Messages (seconds)", min_value=0.5, max_value=10.0, value=getattr(wl_config.features, 'min_time_between_messages', 2.0), step=0.5)
-
-        with tab3:
-            st.subheader("Color Scheme")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
-                secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
-                
-            with col2:
-                accent_color = st.color_picker("Accent Color", value=getattr(wl_config.branding, 'accent_color', '#f39c12'))
-                background_color = st.color_picker("Background Color", value=getattr(wl_config.branding, 'background_color', '#ffffff'))
-                
-            st.subheader("UI Preferences")
-            col1, col2 = st.columns(2)
-            with col1:
-                header_style = st.selectbox("Header Style", ["gradient", "solid", "minimal"], index=0)
-                show_feature_badges = st.checkbox("Show Feature Badges by Default", value=False)
-            with col2:
-                footer_style = st.selectbox("Footer Style", ["branded", "minimal", "hidden"], index=0)
-                compact_mode = st.checkbox("Compact UI Mode", value=False)
-
-        with tab4:
-            st.subheader("Default Model Settings")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                default_model = st.selectbox("Default AI Model", 
-                    options=list(model_handler.models.keys()),
-                    index=list(model_handler.models.keys()).index("gpt-4o") if "gpt-4o" in model_handler.models else 0
-                )
-            with col2:
-                enable_auto_model_switch = st.checkbox("Enable Auto Model Switching", value=False)
-                
-            st.subheader("Conversation Behavior")
-            col1, col2 = st.columns(2)
-            with col1:
-                auto_save_conversations = st.checkbox("Auto-save Conversations", value=True)
-                show_timestamps = st.checkbox("Show Message Timestamps", value=True)
-            with col2:
-                enable_message_reactions = st.checkbox("Enable Message Reactions", value=False)
-                enable_conversation_memory = st.checkbox("Enable Long-term Memory", value=False)
-
-        # Action buttons
-        st.markdown("---")
-        col_save, col_cancel, col_reset, col_advanced = st.columns(4)
+        col_save, col_cancel, col_advanced = st.columns(3)
 
         with col_save:
-            save_config = st.form_submit_button("💾 Save All", type="primary", use_container_width=True)
+            save_config = st.form_submit_button("💾 Save", type="primary", use_container_width=True)
 
         with col_cancel:
             cancel_config = st.form_submit_button("❌ Cancel", use_container_width=True)
 
-        with col_reset:
-            reset_config = st.form_submit_button("🔄 Reset to Defaults", use_container_width=True)
-
         with col_advanced:
-            advanced_clicked = st.form_submit_button("🔧 Advanced Manager", use_container_width=True)
+            advanced_clicked = st.form_submit_button("🔧 Advanced Settings", use_container_width=True)
 
         if advanced_clicked:
             st.session_state.show_config = False
             st.session_state.show_config_manager = True
+            st.success("Loading Configuration Manager...")
             st.rerun()
 
-        if reset_config:
-            st.warning("⚠️ This will reset all settings to defaults. Use 'Advanced Manager' to export your current config first if needed.")
-
         if save_config:
-            # Update branding configuration
+            # Update configuration
             wl_config.branding.app_title = app_title
             wl_config.branding.app_icon = app_icon
             wl_config.branding.company_name = company_name
             wl_config.branding.primary_color = primary_color
             wl_config.branding.secondary_color = secondary_color
-            
-            # Update extended branding options
-            wl_config.branding.app_tagline = app_tagline
-            wl_config.branding.app_description = app_description
-            wl_config.branding.company_website = company_website
-            wl_config.branding.company_support_email = company_support_email
-            wl_config.branding.company_logo_url = company_logo_url
-            wl_config.branding.show_powered_by = show_powered_by
-            
-            # Update features configuration
             wl_config.features.enable_image_generation = enable_image_gen
-            wl_config.features.enable_model_comparison = enable_model_comparison
-            wl_config.features.enable_deep_thinking = enable_deep_thinking
-            wl_config.features.enable_conversation_starters = enable_conversation_starters
-            wl_config.features.enable_file_upload = enable_file_upload
-            wl_config.features.enable_model_recommender = enable_model_recommender
-            wl_config.features.enable_export_conversation = enable_export_conversation
-            wl_config.features.enable_screen_sharing = enable_screen_sharing
-            wl_config.features.max_messages_per_session = max_messages
-            wl_config.features.min_time_between_messages = min_time_between
-            
-            # Update default model
-            wl_config.features.default_model = model_handler.models[default_model]
 
             # Save to file
             if wl_config.save_config():
-                st.success("✅ All settings saved successfully! Refreshing page...")
+                st.success("✅ Quick settings saved! Refreshing page...")
                 st.session_state.show_config = False
                 time.sleep(1)
                 st.rerun()
@@ -474,7 +309,7 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             st.session_state.show_config = False
             st.rerun()
 
-    st.info("💡 **Tip**: Use the Advanced Manager for templates, deployment settings, API integrations, and bulk configuration options!")
+    st.info("💡 **Tip**: Use the Configuration Manager for templates, deployment settings, hub integration, and more advanced options!")
     st.divider()
 
 # Model recommender section

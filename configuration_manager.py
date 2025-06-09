@@ -4,23 +4,31 @@ import json
 import os
 import time
 from datetime import datetime
-from white_label_config import WhiteLabelConfig, setup_white_label_deployment, create_template_configs
-from hub_connection_manager import HubConnectionManager
+from white_label_config import WhiteLabelConfig, create_template_configs
+try:
+    from hub_connection_manager import HubConnectionManager
+    HUB_AVAILABLE = True
+except ImportError:
+    HUB_AVAILABLE = False
 
 class ConfigurationManager:
     """Streamlit interface for managing white label configuration"""
     
     def __init__(self):
         self.config = WhiteLabelConfig()
-        self.hub_manager = HubConnectionManager(self.config)
+        if HUB_AVAILABLE:
+            self.hub_manager = HubConnectionManager(self.config)
+        else:
+            self.hub_manager = None
     
     def render_configuration_interface(self):
         """Render the complete configuration interface"""
         
-        st.title("🔧 White Label Configuration Manager")
+        st.title("🔧 Configuration Manager")
+        st.markdown("*Advanced settings for your AI Assistant platform*")
         
         # Configuration tabs
-        tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        tabs = st.tabs([
             "🎨 Branding", 
             "⚙️ Features", 
             "🌐 Deployment", 
@@ -28,19 +36,19 @@ class ConfigurationManager:
             "📋 Templates"
         ])
         
-        with tab1:
+        with tabs[0]:
             self._render_branding_config()
         
-        with tab2:
+        with tabs[1]:
             self._render_features_config()
         
-        with tab3:
+        with tabs[2]:
             self._render_deployment_config()
         
-        with tab4:
+        with tabs[3]:
             self._render_connection_config()
         
-        with tab5:
+        with tabs[4]:
             self._render_template_config()
         
         # Save configuration
@@ -48,19 +56,23 @@ class ConfigurationManager:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            if st.button("💾 Save Configuration", type="primary"):
+            if st.button("💾 Save Configuration", type="primary", use_container_width=True):
                 if self.config.save_config():
-                    st.success("Configuration saved successfully!")
+                    st.success("✅ Configuration saved successfully! Reloading app...")
+                    time.sleep(1)
+                    st.rerun()
                 else:
-                    st.error("Failed to save configuration")
+                    st.error("❌ Failed to save configuration")
         
         with col2:
-            if st.button("🔄 Reset to Defaults"):
-                self.config = WhiteLabelConfig()
-                st.rerun()
+            if st.button("🔄 Reset to Defaults", use_container_width=True):
+                if st.button("⚠️ Confirm Reset", type="secondary"):
+                    self.config = WhiteLabelConfig()
+                    st.success("Configuration reset to defaults!")
+                    st.rerun()
         
         with col3:
-            if st.button("🧪 Test Hub Connection"):
+            if st.button("🧪 Test Hub Connection", use_container_width=True):
                 self._test_hub_connection()
     
     def _render_branding_config(self):
@@ -263,93 +275,76 @@ class ConfigurationManager:
         """Render Hub connection configuration"""
         st.header("Hub Dashboard Connection")
         
-        # Connection toggle
-        self.config.connection.enable_hub_integration = st.checkbox(
+        if not HUB_AVAILABLE:
+            st.warning("⚠️ Hub Connection Manager not available. Some features may be limited.")
+            st.info("💡 This is normal if you're running a standalone deployment.")
+            return
+        
+        # Simple connection toggle
+        hub_enabled = st.checkbox(
             "Enable Hub Integration", 
-            value=self.config.connection.enable_hub_integration,
+            value=getattr(self.config.connection, 'enable_hub_integration', False),
             help="Connect to your Central Hub Dashboard for analytics and management"
         )
         
-        if self.config.connection.enable_hub_integration:
+        if hasattr(self.config.connection, 'enable_hub_integration'):
+            self.config.connection.enable_hub_integration = hub_enabled
+        
+        if hub_enabled:
             col1, col2 = st.columns(2)
             
             with col1:
                 st.subheader("Connection Details")
-                self.config.connection.hub_dashboard_url = st.text_input(
+                hub_url = st.text_input(
                     "Hub Dashboard URL", 
-                    value=self.config.connection.hub_dashboard_url,
+                    value=getattr(self.config.connection, 'hub_dashboard_url', ''),
                     placeholder="https://your-hub-dashboard.replit.dev"
                 )
+                if hasattr(self.config.connection, 'hub_dashboard_url'):
+                    self.config.connection.hub_dashboard_url = hub_url
                 
-                self.config.connection.hub_api_key = st.text_input(
+                api_key = st.text_input(
                     "Hub API Key", 
-                    value=self.config.connection.hub_api_key,
+                    value=getattr(self.config.connection, 'hub_api_key', ''),
                     type="password",
                     help="API key generated by your Hub Dashboard"
                 )
+                if hasattr(self.config.connection, 'hub_api_key'):
+                    self.config.connection.hub_api_key = api_key
                 
-                self.config.connection.app_id = st.text_input(
+                app_id = st.text_input(
                     "App ID", 
-                    value=self.config.connection.app_id,
+                    value=getattr(self.config.connection, 'app_id', 'multi-model-chat'),
                     help="Unique identifier for this app in the Hub"
                 )
+                if hasattr(self.config.connection, 'app_id'):
+                    self.config.connection.app_id = app_id
             
             with col2:
-                st.subheader("Advanced Settings")
-                self.config.connection.connection_timeout = st.number_input(
-                    "Connection Timeout (seconds)", 
-                    min_value=5, 
-                    max_value=300,
-                    value=self.config.connection.connection_timeout
-                )
-                
-                self.config.connection.retry_attempts = st.number_input(
-                    "Retry Attempts", 
-                    min_value=1, 
-                    max_value=10,
-                    value=self.config.connection.retry_attempts
-                )
-                
-                self.config.connection.enable_real_time_sync = st.checkbox(
-                    "Enable Real-time Sync", 
-                    value=self.config.connection.enable_real_time_sync,
-                    help="Use WebSocket for real-time updates"
-                )
-            
-            # Connection status
-            st.subheader("Connection Status")
-            
-            if st.button("Test Connection Now"):
-                with st.spinner("Testing connection..."):
-                    result = self.hub_manager.test_connection()
-                    
-                    if result['success']:
-                        st.success(f"✅ {result['message']}")
-                        if 'response_time' in result:
-                            st.info(f"Response time: {result['response_time']:.2f}s")
+                st.subheader("Connection Status")
+                if st.button("Test Connection Now", type="secondary"):
+                    if self.hub_manager:
+                        with st.spinner("Testing connection..."):
+                            try:
+                                result = self.hub_manager.test_connection()
+                                if result.get('success'):
+                                    st.success(f"✅ {result.get('message', 'Connection successful')}")
+                                else:
+                                    st.error(f"❌ {result.get('message', 'Connection failed')}")
+                            except Exception as e:
+                                st.error(f"❌ Connection test failed: {str(e)}")
                     else:
-                        st.error(f"❌ {result['message']}")
-            
-            # Setup instructions
-            with st.expander("📋 Setup Instructions"):
-                st.markdown("""
-                ### Quick Setup Steps:
-                
-                1. **Generate API Key** from your Hub Dashboard
-                2. **Copy the generated API key** and paste it above
-                3. **Set your App ID** (recommended: `multi-model-chat`)
-                4. **Test the connection** using the button above
-                
-                ### Required Headers:
-                Your Hub Dashboard expects these headers:
-                - X-API-Key: your-generated-api-key
-                - Content-Type: application/json
-                
-                ### Available Endpoints:
-                - **Main API**: Your Hub Dashboard URL
-                - **Events**: /api/events/publish
-                - **Connection Test**: /api/test-connection
-                """)
+                        st.error("❌ Hub manager not available")
+        
+        # Simple instructions
+        with st.expander("📋 Setup Instructions"):
+            st.markdown("""
+            ### Quick Setup:
+            1. Deploy a Hub Dashboard on Replit
+            2. Generate an API key from your Hub
+            3. Enter the Hub URL and API key above
+            4. Test the connection
+            """)
     
     def _render_template_config(self):
         """Render template configuration"""
@@ -428,25 +423,39 @@ class ConfigurationManager:
     
     def _test_hub_connection(self):
         """Test Hub connection and display results"""
-        with st.spinner("Testing Hub connection..."):
-            self.hub_manager = HubConnectionManager(self.config)
-            result = self.hub_manager.test_connection()
+        if not HUB_AVAILABLE or not self.hub_manager:
+            st.error("❌ Hub Connection Manager not available")
+            return
             
-            if result['success']:
-                st.success(f"✅ {result['message']}")
+        with st.spinner("Testing Hub connection..."):
+            try:
+                result = self.hub_manager.test_connection()
                 
-                # Try to register the app
-                reg_result = self.hub_manager.register_app()
-                if reg_result['success']:
-                    st.success(f"📱 App registered with Hub: {reg_result.get('registration_id', 'Success')}")
-                else:
-                    st.warning(f"⚠️ App registration failed: {reg_result['message']}")
+                if result.get('success'):
+                    st.success(f"✅ {result.get('message', 'Connection successful')}")
                     
-            else:
-                st.error(f"❌ Connection failed: {result['message']}")
-                st.info("💡 Make sure your Hub Dashboard is running and the URL/API key are correct")
+                    # Try to register the app if connection works
+                    try:
+                        reg_result = self.hub_manager.register_app()
+                        if reg_result.get('success'):
+                            st.success(f"📱 App registered with Hub")
+                        else:
+                            st.warning(f"⚠️ App registration failed: {reg_result.get('message', 'Unknown error')}")
+                    except Exception as e:
+                        st.warning(f"⚠️ App registration failed: {str(e)}")
+                        
+                else:
+                    st.error(f"❌ Connection failed: {result.get('message', 'Unknown error')}")
+                    st.info("💡 Make sure your Hub Dashboard is running and the URL/API key are correct")
+                    
+            except Exception as e:
+                st.error(f"❌ Connection test failed: {str(e)}")
 
 def render_configuration_manager():
     """Render the configuration manager in Streamlit"""
-    config_manager = ConfigurationManager()
-    config_manager.render_configuration_interface()
+    try:
+        config_manager = ConfigurationManager()
+        config_manager.render_configuration_interface()
+    except Exception as e:
+        st.error(f"Error loading Configuration Manager: {str(e)}")
+        st.info("Please check that all required configuration files are present.")
