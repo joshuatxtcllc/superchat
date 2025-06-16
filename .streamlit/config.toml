@@ -3,20 +3,12 @@
 port = 5000
 address = "0.0.0.0"
 headless = true
-enableCORS = false
-enableXsrfProtection = false
 
 [browser]
 gatherUsageStats = false
 
-[client]
-toolbarMode = "minimal"
-
-[runner]
-magicEnabled = true
-
 [theme]
 primaryColor = "#2D87D3"
-backgroundColor = "#ffffff" 
+backgroundColor = "#ffffff"
 secondaryBackgroundColor = "#f8f9fa"
 textColor = "#000000"
