@@ -16,6 +16,7 @@ from utils import (
     load_session_history, 
     save_session_history
 )
+from usage_monitor import usage_monitor
 
 # Initialize white-label configuration
 wl_config = WhiteLabelConfig()
@@ -266,7 +267,7 @@ if 'show_config' in st.session_state and st.session_state.show_config:
             st.subheader("🎨 Quick Colors")
             primary_color = st.color_picker("Primary Color", value=wl_config.branding.primary_color)
             secondary_color = st.color_picker("Secondary Color", value=wl_config.branding.secondary_color)
-            
+
             st.subheader("⚡ Quick Features")
             enable_image_gen = st.checkbox("Enable Image Generation", value=wl_config.features.enable_image_generation)
 
@@ -486,12 +487,12 @@ if wl_config.features.enable_image_generation:
         if 'improved_prompt' in st.session_state:
             st.markdown("---")
             st.subheader("🤖 AI-Improved Prompt")
-            
+
             col_orig, col_improved = st.columns(2)
             with col_orig:
                 st.markdown("**Original:**")
                 st.text_area("Original prompt:", value=st.session_state.original_prompt, height=80, key="original_display", disabled=True)
-            
+
             with col_improved:
                 st.markdown("**Improved:**")
                 improved_prompt_display = st.text_area("Improved prompt:", value=st.session_state.improved_prompt, height=80, key="improved_display")
@@ -542,7 +543,7 @@ if wl_config.features.enable_image_generation:
                 # Use improved prompt if available and user clicked "Use Improved", otherwise use the original
                 current_prompt = st.session_state.get('prompt_to_use', image_prompt)
                 current_image_url = image_url.strip() if 'image_url' in locals() else None
-                
+
                 if current_prompt.strip():
                     with st.spinner("Generating image... This may take a moment..."):
                         result = image_generator.generate_image(
@@ -563,7 +564,7 @@ if wl_config.features.enable_image_generation:
                             prompt_info = f"Prompt: '{current_prompt}'"
                             if current_prompt != image_prompt:
                                 prompt_info = f"Original prompt: '{image_prompt}'\nImproved prompt: '{current_prompt}'"
-                            
+
                             reference_info = ""
                             if current_image_url:
                                 reference_info = f"\nReference image: {current_image_url}"
@@ -742,12 +743,28 @@ with st.container():
 
                 thinking_text = " (with deep thinking)" if st.session_state.deep_thinking else ""
                 with st.spinner(f"Getting response from {model_name}{thinking_text}..."):
+                    # Check if service is blocked
+                    service_status = usage_monitor.is_service_blocked()
+                    if service_status['any_blocked']:
+                        st.error("🚨 Service temporarily unavailable due to usage limits. Please contact administrator.")
+                        st.stop()
+
                     response = model_handler.get_response(
                         messages_for_api, 
                         model_id, 
                         deep_thinking=st.session_state.deep_thinking,
                         uploaded_files=current_files
                     )
+
+                    # Track usage
+                    estimated_tokens = len(user_input.split()) * 1.3  # Rough estimate
+                    estimated_cost = estimated_tokens * 0.00001  # Rough cost estimate
+                    usage_monitor.track_usage("api_call", 1, estimated_cost)
+                    usage_monitor.track_usage("tokens", int(estimated_tokens))
+
+                    # Track conversation
+                    if len(st.session_state.messages) == 2:  # First exchange
+                        usage_monitor.track_usage("conversation", 1)
 
                     # Add MCP context if available
                     mcp_context = mcp_handler.extract_mcp_context(response)
@@ -771,12 +788,28 @@ with st.container():
             # Get AI response using current model
             thinking_text = " (deep thinking enabled)" if st.session_state.deep_thinking else ""
             with st.spinner(f"Thinking{thinking_text}..."):
+                # Check if service is blocked
+                service_status = usage_monitor.is_service_blocked()
+                if service_status['any_blocked']:
+                    st.error("🚨 Service temporarily unavailable due to usage limits. Please contact administrator.")
+                    st.stop()
+
                 response = model_handler.get_response(
                     messages_for_api, 
                     st.session_state.current_model,
                     deep_thinking=st.session_state.deep_thinking,
                     uploaded_files=current_files
                 )
+
+                # Track usage
+                estimated_tokens = len(user_input.split()) * 1.3  # Rough estimate
+                estimated_cost = estimated_tokens * 0.00001  # Rough cost estimate
+                usage_monitor.track_usage("api_call", 1, estimated_cost)
+                usage_monitor.track_usage("tokens", int(estimated_tokens))
+
+                # Track conversation
+                if len(st.session_state.messages) == 2:  # First exchange
+                    usage_monitor.track_usage("conversation", 1)
 
                 # Add MCP context if available
                 mcp_context = mcp_handler.extract_mcp_context(response)
@@ -813,3 +846,55 @@ with col_footer:
 
 if st.session_state.show_footer:
     st.markdown(wl_config.get_footer_html(), unsafe_allow_html=True)
+
+st.divider()
+
+# Sidebar navigation
+page = st.sidebar.selectbox(
+            "🗂️ Navigation",
+            ["💬 Chat", "🔧 Configuration", "🚀 Conversation Starters", "📊 Model Comparison", "🔍 Usage Monitor"],
+            index=0
+        )
+
+if page == "💬 Chat":
+    pass # Default chat interface - all above code remains here
+elif page == "🔧 Configuration":
+        try:
+            from configuration_manager import render_configuration_manager
+            render_configuration_manager()
+        except Exception as e:
+            st.error(f"Error loading Configuration Manager: {e}")
+            st.info("Falling back to quick settings...")
+            st.session_state.show_config_manager = False
+            st.session_state.show_config = True
+            st.rerun()
+
+elif page == "🚀 Conversation Starters":
+    try:
+        from conversation_starters import render_conversation_starters
+        render_conversation_starters()
+    except Exception as e:
+        st.error(f"Error loading Conversation Starters: {e}")
+
+elif page == "📊 Model Comparison":
+        # Import and render the model comparison interface
+        try:
+            from model_comparison import render_model_comparison
+            render_model_comparison()
+        except Exception as e:
+            st.error(f"Error loading Model Comparison: {e}")
+
+    elif page == "🔍 Usage Monitor":
+        usage_monitor.render_monitoring_dashboard()
+
+# Apply custom styling
+        st.markdown(wl_config.get_custom_css(), unsafe_allow_html=True)
+
+        # Header
+        st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
+
+        # Usage monitoring widget in sidebar
+        with st.sidebar:
+            st.markdown("---")
+            from usage_dashboard_widget import render_usage_widget
+            render_usage_widget()

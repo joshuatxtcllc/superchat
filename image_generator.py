@@ -41,6 +41,16 @@ class ImageGenerator:
                 prompt = f"{prompt}\n\nReference image style: {reference_image_url}"
 
             if model == "dall-e-3":
+                # Check usage limits before generating
+                from usage_monitor import usage_monitor
+                service_status = usage_monitor.is_service_blocked()
+                if service_status['any_blocked']:
+                    return {
+                        'success': False,
+                        'error_message': 'Image generation temporarily unavailable due to usage limits.',
+                        'image_url': None
+                    }
+
                 response = client.images.generate(
                     model=model,
                     prompt=prompt,
@@ -49,6 +59,10 @@ class ImageGenerator:
                     style=style,
                     n=1
                 )
+
+                # Track image generation usage
+                estimated_cost = 0.04 if quality == "standard" else 0.08  # DALL-E-3 pricing
+                usage_monitor.track_usage("image", 1, estimated_cost)
             else:  # DALL-E 2
                 response = client.images.generate(
                     model=model,
