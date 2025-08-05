@@ -16,7 +16,6 @@ from utils import (
     load_session_history, 
     save_session_history
 )
-from usage_monitor import usage_monitor
 
 # Initialize white-label configuration
 wl_config = WhiteLabelConfig()
@@ -743,28 +742,12 @@ with st.container():
 
                 thinking_text = " (with deep thinking)" if st.session_state.deep_thinking else ""
                 with st.spinner(f"Getting response from {model_name}{thinking_text}..."):
-                    # Check if service is blocked
-                    service_status = usage_monitor.is_service_blocked()
-                    if service_status['any_blocked']:
-                        st.error("🚨 Service temporarily unavailable due to usage limits. Please contact administrator.")
-                        st.stop()
-
                     response = model_handler.get_response(
                         messages_for_api, 
                         model_id, 
                         deep_thinking=st.session_state.deep_thinking,
                         uploaded_files=current_files
                     )
-
-                    # Track usage
-                    estimated_tokens = len(user_input.split()) * 1.3  # Rough estimate
-                    estimated_cost = estimated_tokens * 0.00001  # Rough cost estimate
-                    usage_monitor.track_usage("api_call", 1, estimated_cost)
-                    usage_monitor.track_usage("tokens", int(estimated_tokens))
-
-                    # Track conversation
-                    if len(st.session_state.messages) == 2:  # First exchange
-                        usage_monitor.track_usage("conversation", 1)
 
                     # Add MCP context if available
                     mcp_context = mcp_handler.extract_mcp_context(response)
@@ -778,123 +761,4 @@ with st.container():
                         "model": model_name,
                         "model_id": model_id,
                         "mcp_context": mcp_context,
-                        "deep_thinking": st.session_state.deep_thinking,
-                        "files_processed": len(current_files) if current_files else 0
-                    })
-
-                    # Save conversation history
-                    save_session_history(st.session_state.conversation_id, st.session_state.messages)
-        else:
-            # Get AI response using current model
-            thinking_text = " (deep thinking enabled)" if st.session_state.deep_thinking else ""
-            with st.spinner(f"Thinking{thinking_text}..."):
-                # Check if service is blocked
-                service_status = usage_monitor.is_service_blocked()
-                if service_status['any_blocked']:
-                    st.error("🚨 Service temporarily unavailable due to usage limits. Please contact administrator.")
-                    st.stop()
-
-                response = model_handler.get_response(
-                    messages_for_api, 
-                    st.session_state.current_model,
-                    deep_thinking=st.session_state.deep_thinking,
-                    uploaded_files=current_files
-                )
-
-                # Track usage
-                estimated_tokens = len(user_input.split()) * 1.3  # Rough estimate
-                estimated_cost = estimated_tokens * 0.00001  # Rough cost estimate
-                usage_monitor.track_usage("api_call", 1, estimated_cost)
-                usage_monitor.track_usage("tokens", int(estimated_tokens))
-
-                # Track conversation
-                if len(st.session_state.messages) == 2:  # First exchange
-                    usage_monitor.track_usage("conversation", 1)
-
-                # Add MCP context if available
-                mcp_context = mcp_handler.extract_mcp_context(response)
-
-                # Add assistant message to conversation
-                timestamp = datetime.now().strftime("%I:%M %p, %B %d")
-                current_model_name = next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), "AI")
-                st.session_state.messages.append({
-                    "role": "assistant", 
-                    "content": response,
-                    "timestamp": timestamp,
-                    "model": current_model_name,
-                    "model_id": st.session_state.current_model,
-                    "mcp_context": mcp_context,
-                    "deep_thinking": st.session_state.deep_thinking,
-                    "files_processed": len(current_files) if current_files else 0
-                })
-
-                # Save conversation history
-                save_session_history(st.session_state.conversation_id, st.session_state.messages)
-
-        # Just rerun to update the UI
-        # The text area will be cleared automatically on rerun
-        st.rerun()
-
-# Add branded footer - hidden behind toggle
-if 'show_footer' not in st.session_state:
-    st.session_state.show_footer = False
-
-col_spacer, col_footer = st.columns([5, 1])
-with col_footer:
-    if st.button("ℹ️ About", help="Show app information"):
-        st.session_state.show_footer = not st.session_state.show_footer
-
-if st.session_state.show_footer:
-    st.markdown(wl_config.get_footer_html(), unsafe_allow_html=True)
-
-st.divider()
-
-# Sidebar navigation
-page = st.sidebar.selectbox(
-            "🗂️ Navigation",
-            ["💬 Chat", "🔧 Configuration", "🚀 Conversation Starters", "📊 Model Comparison", "🔍 Usage Monitor"],
-            index=0
-        )
-
-if page == "💬 Chat":
-    pass # Default chat interface - all above code remains here
-elif page == "🔧 Configuration":
-        try:
-            from configuration_manager import render_configuration_manager
-            render_configuration_manager()
-        except Exception as e:
-            st.error(f"Error loading Configuration Manager: {e}")
-            st.info("Falling back to quick settings...")
-            st.session_state.show_config_manager = False
-            st.session_state.show_config = True
-            st.rerun()
-
-elif page == "🚀 Conversation Starters":
-    try:
-        from conversation_starters import render_conversation_starters
-        render_conversation_starters()
-    except Exception as e:
-        st.error(f"Error loading Conversation Starters: {e}")
-
-elif page == "📊 Model Comparison":
-        # Import and render the model comparison interface
-        try:
-            from model_comparison import render_model_comparison
-            render_model_comparison()
-        except Exception as e:
-            st.error(f"Error loading Model Comparison: {e}")
-
-    elif page == "🔍 Usage Monitor":
-        usage_monitor.render_monitoring_dashboard()
-
-# Apply custom styling
-        st.markdown(wl_config.get_custom_css(), unsafe_allow_html=True)
-
-        # Header
-        st.markdown(wl_config.get_header_html(), unsafe_allow_html=True)
-
-        # Usage monitoring widget in sidebar
-        with st.sidebar:
-            st.markdown("---")
-            from usage_dashboard_widget import render_usage_widget
-            render_usage_widget()
+                        "deep_thinking":
