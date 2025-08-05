@@ -761,4 +761,5 @@ with st.container():
                         "model": model_name,
                         "model_id": model_id,
                         "mcp_context": mcp_context,
-                        "deep_thinking":
+                        "deep_thinking": st.session_state.deep_thinking
+                    })
