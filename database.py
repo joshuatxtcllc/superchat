@@ -6,9 +6,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.postgresql import JSON
 
-# Database configuration
+# Database configuration with fallback
 DATABASE_URL = os.environ.get('DATABASE_URL')
-engine = create_engine(DATABASE_URL)
+
+if DATABASE_URL:
+    # Use PostgreSQL for production
+    engine = create_engine(DATABASE_URL)
+else:
+    # Fallback to SQLite for development
+    DATABASE_URL = "sqlite:///./app_database.db"
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

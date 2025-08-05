@@ -11,11 +11,13 @@ from conversation_starters import get_conversation_starters
 from image_generator import ImageGenerator
 from white_label_config import WhiteLabelConfig
 from utils import (
-    get_avatar, 
-    format_message, 
-    load_session_history, 
+    get_avatar,
+    format_message,
+    load_session_history,
     save_session_history
 )
+from auth_manager import auth_manager
+from health_check import health_check
 
 # Initialize white-label configuration
 wl_config = WhiteLabelConfig()
@@ -29,6 +31,74 @@ st.set_page_config(
 
 # Apply custom branded CSS
 st.markdown(wl_config.get_custom_css(), unsafe_allow_html=True)
+
+# Check authentication first
+current_session = auth_manager.require_auth()
+
+if not current_session:
+    auth_manager.render_login_page()
+    st.stop()
+
+# Add logout button in sidebar
+with st.sidebar:
+    st.write(f"👤 Logged in as: **{current_session.username}**")
+    st.write(f"🔐 Role: **{current_session.role}**")
+
+    if st.button("🚪 Logout"):
+        auth_manager.logout()
+        st.rerun()
+
+    # Admin menu
+    if current_session.role in ["admin", "super_admin"]:
+        st.divider()
+        st.write("**Admin Tools**")
+        if st.button("👥 User Management"):
+            st.session_state.show_admin = True
+        if st.button("🏥 System Health"):
+            st.session_state.show_health = True
+
+# Handle admin pages
+if st.session_state.get('show_admin'):
+    if current_session.role in ["admin", "super_admin"]:
+        auth_manager.render_user_management()
+        if st.button("← Back to Chat"):
+            st.session_state.show_admin = False
+            st.rerun()
+        st.stop()
+
+if st.session_state.get('show_health'):
+    if current_session.role in ["admin", "super_admin"]:
+        health_data = health_check()
+        st.title("🏥 System Health Dashboard")
+
+        # Status indicator
+        if health_data["status"] == "healthy":
+            st.success("✅ System Healthy")
+        elif health_data["status"] == "degraded":
+            st.warning("⚠️ System Degraded")
+        else:
+            st.error("🚨 System Critical")
+
+        # Metrics display
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("CPU Usage", f"{health_data['system_metrics']['cpu_usage_percent']:.1f}%")
+        with col2:
+            st.metric("Memory Usage", f"{health_data['system_metrics']['memory_usage_percent']:.1f}%")
+        with col3:
+            st.metric("API Calls Today", health_data['usage_metrics']['api_calls_today'])
+        with col4:
+            st.metric("Daily Cost", f"${health_data['usage_metrics']['cost_today']:.2f}")
+
+        # Detailed health data
+        with st.expander("Detailed Health Data"):
+            st.json(health_data)
+
+        if st.button("← Back to Chat"):
+            st.session_state.show_health = False
+            st.rerun()
+        st.stop()
 
 # Initialize session state variables
 if 'messages' not in st.session_state:
@@ -135,7 +205,7 @@ with st.sidebar:
         if 'deep_thinking' not in st.session_state:
             st.session_state.deep_thinking = False
 
-        deep_thinking = st.toggle("Enable Deep Thinking", value=st.session_state.deep_thinking, 
+        deep_thinking = st.toggle("Enable Deep Thinking", value=st.session_state.deep_thinking,
                                  help="Shows the AI's reasoning process transparently")
         st.session_state.deep_thinking = deep_thinking
 
@@ -170,7 +240,7 @@ with st.sidebar:
     st.divider()
     st.markdown("### Model Recommender")
     st.markdown("""
-    Not sure which model to use? Our AI-powered recommender will analyze your task 
+    Not sure which model to use? Our AI-powered recommender will analyze your task
     and recommend the best model for you.
     """)
     if st.button("Ask for Recommendation"):
@@ -194,7 +264,7 @@ with st.sidebar:
     st.divider()
     st.markdown("### About MCP")
     st.markdown("""
-    This interface implements the Model Context Protocol (MCP), which allows for 
+    This interface implements the Model Context Protocol (MCP), which allows for
     standardized interactions with different AI models. MCP enables models to:
 
     - Self-describe their capabilities
@@ -369,7 +439,7 @@ if 'selected_starter' in st.session_state and st.session_state.selected_starter:
 
     # Add user message to conversation
     st.session_state.messages.append({
-        "role": "user", 
+        "role": "user",
         "content": starter,
         "timestamp": timestamp
     })
@@ -384,7 +454,7 @@ if 'selected_starter' in st.session_state and st.session_state.selected_starter:
     thinking_text = " (deep thinking enabled)" if st.session_state.deep_thinking else ""
     with st.spinner(f"Thinking{thinking_text}..."):
         response = model_handler.get_response(
-            messages_for_api, 
+            messages_for_api,
             st.session_state.current_model,
             deep_thinking=st.session_state.deep_thinking
         )
@@ -396,7 +466,7 @@ if 'selected_starter' in st.session_state and st.session_state.selected_starter:
         timestamp = datetime.now().strftime("%I:%M %p, %B %d")
         current_model_name = next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), "AI")
         st.session_state.messages.append({
-            "role": "assistant", 
+            "role": "assistant",
             "content": response,
             "timestamp": timestamp,
             "model": current_model_name,
@@ -721,7 +791,7 @@ with st.container():
         # Add user message to conversation
         timestamp = datetime.now().strftime("%I:%M %p, %B %d")
         st.session_state.messages.append({
-            "role": "user", 
+            "role": "user",
             "content": user_input,
             "timestamp": timestamp
         })
@@ -743,8 +813,8 @@ with st.container():
                 thinking_text = " (with deep thinking)" if st.session_state.deep_thinking else ""
                 with st.spinner(f"Getting response from {model_name}{thinking_text}..."):
                     response = model_handler.get_response(
-                        messages_for_api, 
-                        model_id, 
+                        messages_for_api,
+                        model_id,
                         deep_thinking=st.session_state.deep_thinking,
                         uploaded_files=current_files
                     )
@@ -755,7 +825,7 @@ with st.container():
                     # Add assistant message to conversation
                     timestamp = datetime.now().strftime("%I:%M %p, %B %d")
                     st.session_state.messages.append({
-                        "role": "assistant", 
+                        "role": "assistant",
                         "content": response,
                         "timestamp": timestamp,
                         "model": model_name,
@@ -763,3 +833,39 @@ with st.container():
                         "mcp_context": mcp_context,
                         "deep_thinking": st.session_state.deep_thinking
                     })
+        else:
+            # Single model response
+            thinking_text = " (deep thinking enabled)" if st.session_state.deep_thinking else ""
+            with st.spinner(f"Thinking{thinking_text}..."):
+                response = model_handler.get_response(
+                    messages_for_api,
+                    st.session_state.current_model,
+                    deep_thinking=st.session_state.deep_thinking,
+                    uploaded_files=current_files
+                )
+
+                # Add MCP context if available
+                mcp_context = mcp_handler.extract_mcp_context(response)
+
+                # Add assistant message to conversation
+                timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+                current_model_name = next((k for k, v in model_handler.models.items() if v == st.session_state.current_model), "AI")
+                st.session_state.messages.append({
+                    "role": "assistant",
+                    "content": response,
+                    "timestamp": timestamp,
+                    "model": current_model_name,
+                    "model_id": st.session_state.current_model,
+                    "mcp_context": mcp_context,
+                    "deep_thinking": st.session_state.deep_thinking
+                })
+
+        # Save conversation history after processing responses
+        save_session_history(st.session_state.conversation_id, st.session_state.messages)
+        st.rerun() # Rerun to display new messages
+
+
+# Ensure the main function is called if the script is run directly
+if __name__ == "__main__":
+    # The main function logic is now integrated at the top level
+    pass
