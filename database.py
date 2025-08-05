@@ -29,6 +29,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
     preferences = Column(JSON, default={})
+    user_metadata = Column(JSON, default={})
 
 class Conversation(Base):
     __tablename__ = "conversations"

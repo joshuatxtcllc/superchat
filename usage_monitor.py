@@ -6,8 +6,25 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+try:
+    from email.mime.text import MimeText
+    from email.mime.multipart import MimeMultipart
+except ImportError:
+    # Fallback for environments where email.mime is not available
+    class MimeText:
+        def __init__(self, text, subtype='plain'):
+            self.text = text
+            self.subtype = subtype
+    
+    class MimeMultipart:
+        def __init__(self):
+            self.parts = []
+        
+        def attach(self, part):
+            self.parts.append(part)
+        
+        def __setitem__(self, key, value):
+            setattr(self, key.lower().replace('-', '_'), value)
 import logging
 
 @dataclass
@@ -226,6 +243,12 @@ class UsageMonitor:
             return
         
         try:
+            # Check if we have proper email functionality
+            if not hasattr(MimeMultipart, '__call__') or not hasattr(MimeText, '__call__'):
+                self.logger.warning("Email functionality not available - logging alert instead")
+                self.logger.info(f"ALERT: {alert_type} - {message}")
+                return
+            
             msg = MimeMultipart()
             msg['From'] = self.notifications.smtp_username
             msg['To'] = self.notifications.admin_email
@@ -262,6 +285,8 @@ class UsageMonitor:
             
         except Exception as e:
             self.logger.error(f"Failed to send alert: {e}")
+            # Log the alert instead of failing
+            self.logger.info(f"ALERT (email failed): {alert_type} - {message}")
     
     def reset_daily_metrics(self):
         """Reset daily usage metrics"""
