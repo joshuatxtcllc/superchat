@@ -16,7 +16,15 @@ from utils import (
     load_session_history,
     save_session_history
 )
-from auth_manager import auth_manager
+try:
+    from auth_manager import auth_manager
+    if auth_manager is None:
+        st.error("Authentication system failed to initialize. Please check your configuration.")
+        st.stop()
+except Exception as e:
+    st.error(f"Failed to load authentication system: {e}")
+    st.info("Running in demo mode without authentication.")
+    auth_manager = None
 from health_check import health_check
 
 # Initialize white-label configuration
@@ -32,19 +40,29 @@ st.set_page_config(
 # Apply custom branded CSS
 st.markdown(wl_config.get_custom_css(), unsafe_allow_html=True)
 
-# Check authentication first
-current_session = auth_manager.require_auth()
+# Check authentication first (if auth_manager is available)
+current_session = None
+if auth_manager:
+    current_session = auth_manager.require_auth()
 
-if not current_session:
-    auth_manager.render_login_page()
-    st.stop()
+    if not current_session:
+        auth_manager.render_login_page()
+        st.stop()
+else:
+    # Demo mode - create a mock session
+    from dataclasses import dataclass
+    @dataclass
+    class MockSession:
+        username: str = "demo_user"
+        role: str = "admin"
+    current_session = MockSession()
 
 # Add logout button in sidebar
 with st.sidebar:
     st.write(f"👤 Logged in as: **{current_session.username}**")
     st.write(f"🔐 Role: **{current_session.role}**")
 
-    if st.button("🚪 Logout"):
+    if auth_manager and st.button("🚪 Logout"):
         auth_manager.logout()
         st.rerun()
 
@@ -60,7 +78,10 @@ with st.sidebar:
 # Handle admin pages
 if st.session_state.get('show_admin'):
     if current_session.role in ["admin", "super_admin"]:
-        auth_manager.render_user_management()
+        if auth_manager:
+            auth_manager.render_user_management()
+        else:
+            st.info("User management not available in demo mode")
         if st.button("← Back to Chat"):
             st.session_state.show_admin = False
             st.rerun()

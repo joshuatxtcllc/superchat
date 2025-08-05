@@ -271,5 +271,10 @@ class AuthManager:
             if key in st.session_state:
                 del st.session_state[key]
 
-# Global auth manager
-auth_manager = AuthManager()
+# Global auth manager instance
+try:
+    auth_manager = AuthManager()
+except Exception as e:
+    import streamlit as st
+    st.error(f"Failed to initialize auth manager: {e}")
+    auth_manager = None
