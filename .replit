@@ -3,9 +3,13 @@ modules = ["python-3.11"]
 [nix]
 channel = "stable-24_05"
 
+[env]
+PYTHONPATH = "/nix/store"
+PATH = "/nix/store/python3/bin:$PATH"
+
 [deployment]
 deploymentTarget = "autoscale"
-run = ["python", "-m", "streamlit", "run", "app.py", "--server.port", "5000", "--server.address", "0.0.0.0", "--server.headless", "true"]
+run = ["/nix/store/python3/bin/python3", "-m", "streamlit", "run", "app.py", "--server.port", "5000", "--server.address", "0.0.0.0", "--server.headless", "true"]
 
 [workflows]
 runButton = "Run"
@@ -25,7 +29,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python -m streamlit run app.py --server.port 5000"
+args = "/nix/store/python3/bin/python3 -m streamlit run app.py --server.port 5000"
 waitForPort = 5000
 
 [[ports]]

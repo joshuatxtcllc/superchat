@@ -7,7 +7,7 @@
     "dev": "python -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0",
     "build": "echo 'Building Streamlit app...' && python -m py_compile app.py",
     "start": "python -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true",
-    "install": "python -m pip install -r requirements.txt",
+    "install": "/nix/store/python3/bin/python3 -m pip install -r requirements.txt",
     "test": "python -m pytest tests/ -v",
     "lint": "python -m flake8 *.py",
     "format": "python -m black *.py"
