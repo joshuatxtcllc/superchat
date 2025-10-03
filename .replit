@@ -5,7 +5,7 @@ channel = "stable-24_05"
 
 [env]
 PYTHONPATH = "/nix/store"
-PATH = "/nix/store/python3/bin:$PATH"
+PATH = "/nix/store/python3/bin:/usr/bin:$PATH"
 
 [deployment]
 deploymentTarget = "autoscale"
