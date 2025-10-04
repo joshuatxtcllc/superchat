@@ -4,13 +4,13 @@
   "description": "Multi-Model Chat Interface with MCP support",
   "main": "app.py",
   "scripts": {
-    "dev": "/nix/store/python3/bin/python3 -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0",
-    "build": "echo 'Building Streamlit app...' && /nix/store/python3/bin/python3 -m py_compile app.py",
-    "start": "/nix/store/python3/bin/python3 -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true",
-    "install": "/nix/store/python3/bin/python3 -m pip install -r requirements.txt",
-    "test": "python -m pytest tests/ -v",
-    "lint": "python -m flake8 *.py",
-    "format": "python -m black *.py"
+    "dev": "python3 -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0",
+    "build": "echo 'Building Streamlit app...' && python3 -m py_compile app.py",
+    "start": "python3 -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true",
+    "install": "python3 -m pip install -r requirements.txt",
+    "test": "python3 -m pytest tests/ -v",
+    "lint": "python3 -m flake8 *.py",
+    "format": "python3 -m black *.py"
   },
   "keywords": ["streamlit", "ai", "chatbot", "mcp", "multi-model"],
   "author": "Your Name",
