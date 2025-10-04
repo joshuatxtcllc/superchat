@@ -40,7 +40,7 @@ class Conversation(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow)
     is_active = Column(Boolean, default=True)
-    metadata = Column(JSON, default={})
+    conversation_metadata = Column(JSON, default={})
 
 class Message(Base):
     __tablename__ = "messages"

@@ -1,6 +1,6 @@
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 @dataclass
@@ -13,7 +13,7 @@ class ProductionConfig:
     
     # Security
     secret_key: str = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-    allowed_hosts: list = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.replit.dev,*.replit.co').split(',')
+    allowed_hosts: list = field(default_factory=lambda: os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,*.replit.dev,*.replit.co').split(','))
     
     # Database
     database_url: Optional[str] = os.environ.get('DATABASE_URL')
