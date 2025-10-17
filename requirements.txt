@@ -70,3 +70,10 @@ python-dotenv
 requests
 sqlalchemy
 streamlit
+SpeechRecognition
+pyttsx3
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+twilio
+pyaudio

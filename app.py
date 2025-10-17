@@ -10,6 +10,8 @@ from mcp_handler import MCPHandler
 from conversation_starters import get_conversation_starters
 from image_generator import ImageGenerator
 from white_label_config import WhiteLabelConfig
+from model_control_panel import model_control_panel
+from business_assistant_features import business_assistant
 from utils import (
     get_avatar,
     format_message,
@@ -74,6 +76,14 @@ with st.sidebar:
             st.session_state.show_admin = True
         if st.button("🏥 System Health"):
             st.session_state.show_health = True
+        if st.button("🎛️ Model Control Panel"):
+            st.session_state.show_model_control = True
+    else:
+        # Regular users can also access model control panel
+        st.divider()
+        st.write("**User Tools**")
+        if st.button("🎛️ Model Control Panel"):
+            st.session_state.show_model_control = True
 
 # Handle admin pages
 if st.session_state.get('show_admin'):
@@ -121,6 +131,13 @@ if st.session_state.get('show_health'):
             st.rerun()
         st.stop()
 
+if st.session_state.get('show_model_control'):
+    model_control_panel.render()
+    if st.button("← Back to Chat"):
+        st.session_state.show_model_control = False
+        st.rerun()
+    st.stop()
+
 # Initialize session state variables
 if 'messages' not in st.session_state:
     st.session_state.messages = []
@@ -143,22 +160,6 @@ model_handler = ModelHandler()
 model_recommender = ModelRecommender()
 mcp_handler = MCPHandler()
 image_generator = ImageGenerator()
-
-# Initialize smart features
-try:
-    from workflow_automation import WorkflowAutomation, SmartNotificationSystem, ContextualMemorySystem
-    from smart_integrations import SmartIntegrationManager, RealtimeDataSync, PredictiveAnalytics
-    
-    workflow_automation = WorkflowAutomation()
-    notification_system = SmartNotificationSystem()
-    memory_system = ContextualMemorySystem()
-    integration_manager = SmartIntegrationManager()
-    data_sync = RealtimeDataSync()
-    predictive_analytics = PredictiveAnalytics()
-    
-    smart_features_enabled = True
-except ImportError:
-    smart_features_enabled = False
 
 # Load saved messages if they exist
 if st.session_state.conversation_id:
@@ -299,6 +300,28 @@ with st.sidebar:
             st.rerun()
 
     st.divider()
+    st.markdown("### 🏢 Business Assistant")
+    if st.button("📅 Scheduling Hub", use_container_width=True):
+        st.session_state.show_scheduling = True
+        st.rerun()
+    
+    if st.button("📧 Communications", use_container_width=True):
+        st.session_state.show_communications = True
+        st.rerun()
+    
+    if st.button("🤖 Task Automation", use_container_width=True):
+        st.session_state.show_automation = True
+        st.rerun()
+    
+    if st.button("🎙️ Voice Assistant", use_container_width=True):
+        st.session_state.show_voice = True
+        st.rerun()
+    
+    if st.button("🔍 Internet Search", use_container_width=True):
+        st.session_state.show_search = True
+        st.rerun()
+    
+    st.divider()
     st.markdown("### About MCP")
     st.markdown("""
     This interface implements the Model Context Protocol (MCP), which allows for
@@ -309,6 +332,379 @@ with st.sidebar:
     - Share context between models for seamless transitions
     - Optimize the conversation flow based on model strengths
     """)
+
+# Business Assistant Panels
+if st.session_state.get('show_scheduling', False):
+    st.title("📅 Auto-Scheduling Hub")
+    
+    tab1, tab2, tab3 = st.tabs(["Schedule Meeting", "Task Schedule", "Calendar View"])
+    
+    with tab1:
+        st.subheader("Auto-Schedule Meeting")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            meeting_subject = st.text_input("Meeting Subject")
+            attendee_emails = st.text_area("Attendee Emails (one per line)")
+            duration = st.selectbox("Duration", [30, 60, 90, 120], index=1)
+        
+        with col2:
+            meeting_description = st.text_area("Meeting Description", height=100)
+            priority = st.selectbox("Priority", ["High", "Medium", "Low"], index=1)
+        
+        if st.button("🗓️ Auto-Schedule Meeting"):
+            if meeting_subject and attendee_emails:
+                emails = [email.strip() for email in attendee_emails.split('\n') if email.strip()]
+                with st.spinner("Finding optimal meeting time..."):
+                    result = business_assistant.auto_schedule_meeting(
+                        emails, duration, meeting_subject, meeting_description
+                    )
+                
+                if result.get("success"):
+                    st.success("✅ Meeting scheduled successfully!")
+                    st.info(f"📅 Scheduled for: {result['start_time']}")
+                    if result.get("meeting_link"):
+                        st.info(f"🔗 Meeting link: {result['meeting_link']}")
+                else:
+                    st.error(f"❌ Error: {result.get('error', 'Unknown error')}")
+    
+    with tab2:
+        st.subheader("Task Scheduling")
+        
+        # Add new task
+        with st.expander("Add New Task", expanded=True):
+            task_title = st.text_input("Task Title")
+            task_desc = st.text_area("Task Description")
+            task_priority = st.selectbox("Priority", ["high", "medium", "low"], index=1)
+            task_hours = st.number_input("Estimated Hours", min_value=0.5, max_value=40.0, value=1.0, step=0.5)
+            
+            if st.button("➕ Add Task"):
+                task_result = business_assistant.create_task(
+                    task_title, task_desc, priority=task_priority
+                )
+                if task_result.get("success"):
+                    st.success("✅ Task created!")
+                else:
+                    st.error(f"❌ Error: {task_result.get('error')}")
+    
+    with tab3:
+        st.subheader("Calendar Integration")
+        st.info("📝 To enable calendar features:")
+        st.markdown("""
+        1. Set up Google Calendar API credentials
+        2. Add `GOOGLE_CALENDAR_CREDENTIALS` to your Secrets
+        3. Grant necessary permissions for calendar access
+        """)
+    
+    if st.button("← Back to Chat"):
+        st.session_state.show_scheduling = False
+        st.rerun()
+    st.stop()
+
+if st.session_state.get('show_communications', False):
+    st.title("📧 Customer Communications Hub")
+    
+    tab1, tab2, tab3, tab4 = st.tabs(["Send Email", "Templates", "SMS Alerts", "Integration Setup"])
+    
+    with tab1:
+        st.subheader("Send Automated Email")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            to_email = st.text_input("To Email")
+            email_subject = st.text_input("Subject")
+            template_type = st.selectbox("Use Template", ["custom", "appointment_confirmation", "project_update", "invoice_reminder"])
+        
+        with col2:
+            if template_type != "custom":
+                templates = business_assistant.create_customer_communication_templates()
+                template = templates.get(template_type, {})
+                st.info(f"Template: {template.get('subject', 'N/A')}")
+        
+        email_body = st.text_area("Email Body (HTML supported)", height=200)
+        
+        if st.button("📨 Send Email"):
+            if to_email and email_subject:
+                with st.spinner("Sending email..."):
+                    result = business_assistant.send_automated_email(
+                        to_email, email_subject, email_body, template_type if template_type != "custom" else None
+                    )
+                
+                if result.get("success"):
+                    st.success("✅ Email sent successfully!")
+                else:
+                    st.error(f"❌ Error: {result.get('error')}")
+            else:
+                st.warning("Please fill in all required fields")
+    
+    with tab2:
+        st.subheader("Email Templates")
+        templates = business_assistant.create_customer_communication_templates()
+        
+        for template_name, template_data in templates.items():
+            with st.expander(f"📄 {template_name.replace('_', ' ').title()}"):
+                st.markdown(f"**Subject:** {template_data['subject']}")
+                st.markdown("**Body Preview:**")
+                st.code(template_data['body'], language='html')
+    
+    with tab3:
+        st.subheader("SMS Notifications")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            sms_to = st.text_input("Phone Number", placeholder="+1234567890")
+            sms_message = st.text_area("SMS Message", max_chars=160)
+        
+        with col2:
+            st.info("SMS Features require Twilio integration")
+            if st.button("📱 Send SMS"):
+                if sms_to and sms_message:
+                    result = business_assistant.send_sms(sms_to, sms_message)
+                    if result.get("success"):
+                        st.success("✅ SMS sent!")
+                    else:
+                        st.error(f"❌ Error: {result.get('error')}")
+    
+    with tab4:
+        st.subheader("Integration Setup")
+        st.info("📝 Required Environment Variables:")
+        
+        integrations = {
+            "Gmail API": ["GMAIL_CREDENTIALS"],
+            "SMTP Email": ["SMTP_SERVER", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD"],
+            "Twilio SMS": ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER"],
+            "Slack": ["SLACK_WEBHOOK_URL"]
+        }
+        
+        for service, vars_needed in integrations.items():
+            with st.expander(f"🔧 {service}"):
+                for var in vars_needed:
+                    configured = bool(os.environ.get(var))
+                    status = "✅ Configured" if configured else "❌ Not Set"
+                    st.markdown(f"**{var}:** {status}")
+    
+    if st.button("← Back to Chat"):
+        st.session_state.show_communications = False
+        st.rerun()
+    st.stop()
+
+if st.session_state.get('show_automation', False):
+    st.title("🤖 Task Automation Hub")
+    
+    tab1, tab2, tab3 = st.tabs(["Create Workflow", "Active Workflows", "Task Management"])
+    
+    with tab1:
+        st.subheader("Create Automated Workflow")
+        
+        workflow_name = st.text_input("Workflow Name")
+        
+        st.subheader("Triggers")
+        trigger_type = st.selectbox("Trigger Type", [
+            "time_based", "email_received", "task_completed", "calendar_event", "manual"
+        ])
+        
+        st.subheader("Actions")
+        action_type = st.multiselect("Actions to Execute", [
+            "send_email", "create_task", "schedule_meeting", "update_status", "generate_invoice"
+        ])
+        
+        if st.button("🔧 Create Workflow"):
+            triggers = [{"type": trigger_type, "configured": True}]
+            actions = [{"type": action, "configured": False} for action in action_type]
+            
+            result = business_assistant.create_automated_workflow(workflow_name, triggers, actions)
+            if result.get("success"):
+                st.success(f"✅ Workflow '{workflow_name}' created!")
+            else:
+                st.error(f"❌ Error: {result.get('error')}")
+    
+    with tab2:
+        st.subheader("Active Workflows")
+        
+        if os.path.exists("business_workflows.json"):
+            with open("business_workflows.json", 'r') as f:
+                workflows = json.load(f)
+            
+            for workflow in workflows:
+                with st.expander(f"⚡ {workflow['name']}"):
+                    st.json(workflow)
+        else:
+            st.info("No workflows created yet")
+    
+    with tab3:
+        st.subheader("Task Management")
+        
+        # Quick task creation
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            quick_task = st.text_input("Quick Task")
+        with col2:
+            quick_priority = st.selectbox("Priority", ["high", "medium", "low"])
+        with col3:
+            if st.button("➕ Add Quick Task"):
+                if quick_task:
+                    result = business_assistant.create_task(quick_task, "", priority=quick_priority)
+                    if result.get("success"):
+                        st.success("✅ Task added!")
+        
+        # Display existing tasks
+        if os.path.exists("business_tasks.json"):
+            with open("business_tasks.json", 'r') as f:
+                tasks = json.load(f)
+            
+            st.subheader("Current Tasks")
+            for task in tasks[-5:]:  # Show last 5 tasks
+                status_icon = "✅" if task['status'] == "completed" else "🔄" if task['status'] == "in_progress" else "📋"
+                st.markdown(f"{status_icon} **{task['title']}** ({task['priority']}) - {task['status']}")
+    
+    if st.button("← Back to Chat"):
+        st.session_state.show_automation = False
+        st.rerun()
+    st.stop()
+
+if st.session_state.get('show_voice', False):
+    st.title("🎙️ Natural Voice Communication")
+    
+    tab1, tab2, tab3 = st.tabs(["Voice Input", "Text-to-Speech", "Voice Commands"])
+    
+    with tab1:
+        st.subheader("Voice-to-Text Input")
+        
+        if st.button("🎙️ Start Listening", type="primary"):
+            with st.spinner("Listening... Speak now!"):
+                result = business_assistant.listen_for_voice_input(timeout=10)
+            
+            if result.get("success"):
+                st.success(f"🎯 You said: '{result['text']}'")
+                
+                # Process the voice input as a chat message
+                st.session_state.voice_input = result['text']
+                st.rerun()
+            else:
+                st.error(f"❌ Error: {result.get('error')}")
+        
+        # If voice input was captured, add it to the chat
+        if hasattr(st.session_state, 'voice_input') and st.session_state.voice_input:
+            st.info(f"🎤 Voice input captured: {st.session_state.voice_input}")
+            if st.button("💬 Send to Chat"):
+                # Add to chat and process
+                timestamp = datetime.now().strftime("%I:%M %p, %B %d")
+                st.session_state.messages.append({
+                    "role": "user",
+                    "content": f"[Voice Input] {st.session_state.voice_input}",
+                    "timestamp": timestamp
+                })
+                st.session_state.voice_input = None
+                st.session_state.show_voice = False
+                st.rerun()
+    
+    with tab2:
+        st.subheader("Text-to-Speech Output")
+        
+        text_to_speak = st.text_area("Text to Speak", height=100)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🔊 Speak Text"):
+                if text_to_speak:
+                    with st.spinner("Speaking..."):
+                        result = business_assistant.speak_text(text_to_speak)
+                    
+                    if result.get("success"):
+                        st.success("✅ Text spoken!")
+                    else:
+                        st.error(f"❌ Error: {result.get('error')}")
+                else:
+                    st.warning("Please enter text to speak")
+        
+        with col2:
+            st.info("💡 **Voice Features:**\n- Natural voice input for hands-free operation\n- Audio responses for accessibility\n- Voice commands for quick actions")
+    
+    with tab3:
+        st.subheader("Voice Command Examples")
+        
+        commands = [
+            "Schedule meeting with John tomorrow at 2 PM",
+            "Send email to customer about project update",
+            "Create task: Review quarterly reports",
+            "Check my calendar for this week",
+            "What's the status of Project Alpha?"
+        ]
+        
+        st.markdown("**Try these voice commands:**")
+        for cmd in commands:
+            st.markdown(f"• {cmd}")
+        
+        st.info("🎯 Voice commands will be automatically processed and converted to appropriate actions")
+    
+    if st.button("← Back to Chat"):
+        st.session_state.show_voice = False
+        st.rerun()
+    st.stop()
+
+if st.session_state.get('show_search', False):
+    st.title("🔍 Real-Time Internet Search")
+    
+    tab1, tab2 = st.tabs(["Web Search", "Business Insights"])
+    
+    with tab1:
+        st.subheader("Internet Search")
+        
+        search_query = st.text_input("Search Query", placeholder="Enter your search terms...")
+        num_results = st.slider("Number of Results", 1, 10, 5)
+        
+        if st.button("🔍 Search Internet"):
+            if search_query:
+                with st.spinner("Searching the internet..."):
+                    results = business_assistant.search_internet(search_query, num_results)
+                
+                if results.get("success"):
+                    st.success(f"✅ Found {len(results['results'])} results")
+                    
+                    for i, result in enumerate(results['results'], 1):
+                        with st.expander(f"Result {i}: {result.get('title', 'No Title')}"):
+                            st.markdown(f"**Type:** {result.get('type', 'N/A')}")
+                            st.markdown(f"**Source:** {result.get('source', 'N/A')}")
+                            st.markdown(f"**Content:** {result.get('text', 'No content')}")
+                            if result.get('url'):
+                                st.markdown(f"**URL:** [Link]({result['url']})")
+                else:
+                    st.error(f"❌ Search failed: {results.get('error')}")
+                    if results.get("fallback_suggestion"):
+                        st.info(results["fallback_suggestion"])
+    
+    with tab2:
+        st.subheader("Business Intelligence Search")
+        
+        business_term = st.text_input("Business Topic", placeholder="e.g., construction industry, customer retention, digital marketing...")
+        
+        if st.button("📊 Get Business Insights"):
+            if business_term:
+                with st.spinner("Gathering business insights..."):
+                    insights = business_assistant.get_business_insights(business_term)
+                
+                if insights.get("success"):
+                    st.success(f"✅ Found {len(insights['insights'])} insights")
+                    
+                    # Group insights by search term
+                    for insight in insights['insights']:
+                        with st.expander(f"💡 {insight.get('title', 'Business Insight')}"):
+                            st.markdown(insight.get('text', 'No content'))
+                            if insight.get('url'):
+                                st.markdown(f"**Source:** [Link]({insight['url']})")
+                else:
+                    st.error("❌ Failed to gather insights")
+        
+        st.info("💼 **Business Insights includes:**\n- Market trends and analysis\n- Industry best practices\n- Competitor information\n- Growth opportunities")
+    
+    if st.button("← Back to Chat"):
+        st.session_state.show_search = False
+        st.rerun()
+    st.stop()
 
 # Configuration Manager interface
 if st.session_state.get('show_config_manager', False):
