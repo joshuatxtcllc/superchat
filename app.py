@@ -11,13 +11,22 @@ from conversation_starters import get_conversation_starters
 from image_generator import ImageGenerator
 from white_label_config import WhiteLabelConfig
 from model_control_panel import model_control_panel
-from business_assistant_features import business_assistant
 from utils import (
     get_avatar,
     format_message,
     load_session_history,
     save_session_history
 )
+
+# Try to import business assistant features (optional - requires additional packages)
+try:
+    from business_assistant_features import business_assistant
+    business_assistant_available = True
+except ImportError as e:
+    business_assistant_available = False
+    business_assistant = None
+    print(f"Business Assistant features unavailable: {e}")
+
 try:
     from auth_manager import auth_manager
     if auth_manager is None:
