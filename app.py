@@ -10,6 +10,7 @@ from mcp_handler import MCPHandler
 from conversation_starters import get_conversation_starters
 from image_generator import ImageGenerator
 from white_label_config import WhiteLabelConfig
+from model_control_panel import model_control_panel
 from utils import (
     get_avatar,
     format_message,
@@ -74,6 +75,14 @@ with st.sidebar:
             st.session_state.show_admin = True
         if st.button("🏥 System Health"):
             st.session_state.show_health = True
+        if st.button("🎛️ Model Control Panel"):
+            st.session_state.show_model_control = True
+    else:
+        # Regular users can also access model control panel
+        st.divider()
+        st.write("**User Tools**")
+        if st.button("🎛️ Model Control Panel"):
+            st.session_state.show_model_control = True
 
 # Handle admin pages
 if st.session_state.get('show_admin'):
@@ -120,6 +129,13 @@ if st.session_state.get('show_health'):
             st.session_state.show_health = False
             st.rerun()
         st.stop()
+
+if st.session_state.get('show_model_control'):
+    model_control_panel.render()
+    if st.button("← Back to Chat"):
+        st.session_state.show_model_control = False
+        st.rerun()
+    st.stop()
 
 # Initialize session state variables
 if 'messages' not in st.session_state:

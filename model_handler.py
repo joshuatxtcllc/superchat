@@ -3,6 +3,7 @@ import openai
 from anthropic import Anthropic
 import json
 import google.generativeai as genai
+from model_usage_tracker import model_usage_tracker
 
 class ModelHandler:
     """
@@ -217,6 +218,11 @@ class ModelHandler:
     def get_response(self, messages, model_id, deep_thinking=False, uploaded_files=None):
         """Get a response from the specified AI model"""
         try:
+            # Check if model is available (respects toggles, limits, and circuit breakers)
+            available, reason = model_usage_tracker.is_model_available(model_id)
+            if not available:
+                return f"❌ Model not available: {reason}\n\nPlease select a different model or adjust limits in the Model Control Panel."
+            
             # Add file context if files are uploaded
             if uploaded_files:
                 file_context = self._process_uploaded_files(uploaded_files)
@@ -243,20 +249,41 @@ class ModelHandler:
             model_info = self.get_model_info(model_id)
             provider = model_info.get("provider", "unknown")
             
+            # Get response from appropriate provider
+            response = None
+            success = True
+            
             if provider == "openai":
-                return self._get_openai_response(messages, model_id)
+                response = self._get_openai_response(messages, model_id)
             elif provider == "anthropic":
-                return self._get_anthropic_response(messages, model_id)
+                response = self._get_anthropic_response(messages, model_id)
             elif provider == "google":
-                return self._get_gemini_response(messages, model_id)
+                response = self._get_gemini_response(messages, model_id)
             elif provider == "meta":
-                return self._get_meta_response(messages, model_id)
+                response = self._get_meta_response(messages, model_id)
             elif provider == "mistral":
-                return self._get_mistral_response(messages, model_id)
+                response = self._get_mistral_response(messages, model_id)
             else:
-                return f"Unsupported model: {model_id}"
+                response = f"Unsupported model: {model_id}"
+                success = False
+            
+            # Check if response indicates an error
+            if response and ("Error" in response or "error" in response[:50].lower()):
+                success = False
+            
+            # Estimate token usage (rough approximation: 1 token ≈ 4 characters)
+            input_text = " ".join([msg.get("content", "") for msg in messages if isinstance(msg, dict)])
+            input_tokens = len(input_text) // 4
+            output_tokens = len(response) // 4 if response else 0
+            
+            # Track usage
+            model_usage_tracker.track_usage(model_id, input_tokens, output_tokens, success)
+            
+            return response
         
         except Exception as e:
+            # Track failed attempt
+            model_usage_tracker.track_usage(model_id, 0, 0, success=False)
             return f"Error getting response: {str(e)}"
     
     def _process_uploaded_files(self, uploaded_files):
