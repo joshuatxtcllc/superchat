@@ -4,10 +4,9 @@
   "description": "Multi-Model Chat Interface with MCP support",
   "main": "app.py",
   "scripts": {
-    "dev": "python3 -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0",
+    "dev": "echo 'Python dependencies are managed by the runtime environment'",
     "build": "echo 'Building Streamlit app...' && python3 -m py_compile app.py",
     "start": "python3 -m streamlit run app.py --server.port 5000 --server.address 0.0.0.0 --server.headless true",
-    "install": "python3 -m ensurepip --upgrade && python3 -m pip install -r requirements.txt",
     "test": "python3 -m pytest tests/ -v",
     "lint": "python3 -m flake8 *.py",
     "format": "python3 -m black *.py"
