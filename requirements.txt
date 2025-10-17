@@ -56,3 +56,17 @@ streamlit
 uvicorn
 websockets
 streamlit
+streamlit
+anthropic
+flask
+google-generativeai
+openai
+pandas
+plotly
+psutil
+psycopg2-binary
+pyjwt
+python-dotenv
+requests
+sqlalchemy
+streamlit
