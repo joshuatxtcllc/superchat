@@ -1,0 +1,38 @@
+[
+  {
+    "name": "",
+    "id": "workflow_20251019_030132",
+    "triggers": [
+      {
+        "type": "time_based",
+        "configured": true
+      }
+    ],
+    "actions": [
+      {
+        "type": "send_email",
+        "configured": false
+      }
+    ],
+    "created_at": "2025-10-19T03:01:32.974554",
+    "active": true
+  },
+  {
+    "name": "",
+    "id": "workflow_20251019_030145",
+    "triggers": [
+      {
+        "type": "time_based",
+        "configured": true
+      }
+    ],
+    "actions": [
+      {
+        "type": "send_email",
+        "configured": false
+      }
+    ],
+    "created_at": "2025-10-19T03:01:45.470748",
+    "active": true
+  }
+]
