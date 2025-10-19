@@ -28,18 +28,29 @@ class BusinessAssistantFeatures:
     def initialize_services(self):
         """Initialize all business assistant services"""
         try:
-            # Initialize text-to-speech
-            self.voice_engine = pyttsx3.init()
-            voices = self.voice_engine.getProperty('voices')
-            if voices:
-                self.voice_engine.setProperty('voice', voices[0].id)  # Use first available voice
-            self.voice_engine.setProperty('rate', 150)  # Speaking rate
+            # Check if we're in a headless environment (like Replit)
+            import os
+            is_replit = os.environ.get('REPL_ID') is not None
             
-            # Initialize speech recognition
-            self.speech_recognizer = sr.Recognizer()
+            if not is_replit:
+                # Initialize text-to-speech
+                self.voice_engine = pyttsx3.init()
+                voices = self.voice_engine.getProperty('voices')
+                if voices:
+                    self.voice_engine.setProperty('voice', voices[0].id)  # Use first available voice
+                self.voice_engine.setProperty('rate', 150)  # Speaking rate
+                
+                # Initialize speech recognition
+                self.speech_recognizer = sr.Recognizer()
+            else:
+                print("Voice services disabled in Replit environment (no audio hardware available)")
+                self.voice_engine = None
+                self.speech_recognizer = None
             
         except Exception as e:
             print(f"Error initializing voice services: {e}")
+            self.voice_engine = None
+            self.speech_recognizer = None
     
     # SCHEDULING FEATURES
     def get_calendar_service(self):
@@ -339,6 +350,11 @@ class BusinessAssistantFeatures:
     def speak_text(self, text):
         """Convert text to speech"""
         try:
+            # Check if we're in Replit environment
+            import os
+            if os.environ.get('REPL_ID'):
+                return {"success": False, "error": "Text-to-speech not available in Replit environment (no audio output)"}
+            
             if self.voice_engine:
                 self.voice_engine.say(text)
                 self.voice_engine.runAndWait()
@@ -351,6 +367,11 @@ class BusinessAssistantFeatures:
     def listen_for_voice_input(self, timeout=5):
         """Listen for voice input and convert to text"""
         try:
+            # Check if we're in Replit environment
+            import os
+            if os.environ.get('REPL_ID'):
+                return {"success": False, "error": "Voice input not available in Replit environment (no microphone access)"}
+            
             if not self.speech_recognizer:
                 return {"success": False, "error": "Speech recognizer not initialized"}
             
@@ -365,6 +386,10 @@ class BusinessAssistantFeatures:
             return {"success": False, "error": "No speech detected"}
         except sr.UnknownValueError:
             return {"success": False, "error": "Could not understand audio"}
+        except OSError as e:
+            if "No Default Input Device Available" in str(e):
+                return {"success": False, "error": "No microphone available in this environment"}
+            return {"success": False, "error": str(e)}
         except Exception as e:
             return {"success": False, "error": str(e)}
     

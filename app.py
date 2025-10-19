@@ -577,6 +577,11 @@ if st.session_state.get('show_automation', False):
 if st.session_state.get('show_voice', False):
     st.title("🎙️ Natural Voice Communication")
     
+    # Check if we're in Replit environment and show warning
+    if os.environ.get('REPL_ID'):
+        st.warning("⚠️ **Voice features are limited in Replit environment** - No microphone or speakers available. Voice features work best when deployed to a device with audio hardware.")
+        st.info("💡 **Alternative**: Use text input instead, or deploy your app to a device with audio capabilities.")
+    
     tab1, tab2, tab3 = st.tabs(["Voice Input", "Text-to-Speech", "Voice Commands"])
     
     with tab1:
