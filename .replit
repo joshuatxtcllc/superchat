@@ -2,7 +2,7 @@ modules = ["python-3.11", "web"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["glibcLocales", "libxcrypt"]
+packages = ["espeak-ng", "glibcLocales", "libxcrypt", "portaudio"]
 
 [env]
 PYTHONPATH = "/nix/store"
@@ -39,10 +39,6 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 40747
-externalPort = 3000
 
 [agent]
 expertMode = true
