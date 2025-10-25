@@ -31,5 +31,16 @@
     "last_login": "2025-10-19T03:00:02.207433",
     "is_active": true,
     "metadata": {}
+  },
+  "user_004": {
+    "id": "user_004",
+    "username": "Joshrocks ",
+    "email": "Joshstevens1997@yahoo.com",
+    "password_hash": "492b3a7c48b87dcb7dceeecefc29935c7a4f8504849ffd9d9a5a9d966291a9a5:b4575162f446c34c7f0379be61b60852",
+    "role": "user",
+    "created_at": "2025-10-25T20:17:02.572050",
+    "last_login": "2025-10-25T20:17:20.540879",
+    "is_active": true,
+    "metadata": {}
   }
 }
