@@ -9,9 +9,17 @@ from sqlalchemy.dialects.postgresql import JSON
 # Database configuration with fallback
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-if DATABASE_URL:
-    # Use PostgreSQL for production
-    engine = create_engine(DATABASE_URL)
+if DATABASE_URL and not DATABASE_URL.startswith('sqlite'):
+    try:
+        # Use PostgreSQL for production
+        engine = create_engine(DATABASE_URL)
+        # Test connection
+        engine.connect().close()
+    except Exception as e:
+        print(f"PostgreSQL connection failed: {e}")
+        print("Falling back to SQLite...")
+        DATABASE_URL = "sqlite:///./app_database.db"
+        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 else:
     # Fallback to SQLite for development
     DATABASE_URL = "sqlite:///./app_database.db"

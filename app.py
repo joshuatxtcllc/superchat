@@ -30,11 +30,11 @@ except ImportError as e:
 try:
     from auth_manager import auth_manager
     if auth_manager is None:
-        st.error("Authentication system failed to initialize. Please check your configuration.")
-        st.stop()
+        st.warning("Authentication system not available. Running in demo mode.")
+        auth_manager = None
 except Exception as e:
-    st.error(f"Failed to load authentication system: {e}")
-    st.info("Running in demo mode without authentication.")
+    st.warning(f"Authentication system unavailable: {str(e)}")
+    st.info("Running in demo mode without authentication. To enable authentication, set up a PostgreSQL database in the Database panel.")
     auth_manager = None
 from health_check import health_check
 

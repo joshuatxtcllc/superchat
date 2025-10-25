@@ -44,7 +44,13 @@ class AuthManager:
         self.secret_key = os.environ.get('AUTH_SECRET_KEY', self._generate_secret_key())
         self.session_duration_hours = 24
         self.users_file = "users.json"
-        self.db = DatabaseManager()
+        
+        try:
+            self.db = DatabaseManager()
+        except Exception as e:
+            print(f"Database initialization failed: {e}")
+            print("Auth manager will use file-based storage only")
+            self.db = None
 
         # Initialize admin user if none exists
         self._initialize_admin_user()
